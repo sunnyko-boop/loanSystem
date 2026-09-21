@@ -1,0 +1,2570 @@
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>貸款管理系統原型（借款系統版）</title>
+<style>
+  :root {
+    --paper: #f5f7f6;
+    --surface: #ffffff;
+    --surface-2: #eef2f0;
+    --ink: #142320;
+    --muted: #55655f;
+    --line: #d9e1dd;
+    --accent: #0e6e5a;
+    --accent-ink: #ffffff;
+    --accent-soft: #dcece6;
+    --warn: #a85a12;
+    --warn-soft: #f5e6d4;
+    --danger: #b23a2f;
+    --danger-soft: #f6ded9;
+    --neutral-soft: #e6e9e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0f1613;
+      --surface: #161f1c;
+      --surface-2: #1c2723;
+      --ink: #edf4f1;
+      --muted: #97aaa2;
+      --line: #2a3733;
+      --accent: #4fd8b8;
+      --accent-ink: #0b1a16;
+      --accent-soft: #1c3a33;
+      --warn: #e2a15a;
+      --warn-soft: #3a2c1a;
+      --danger: #e2857a;
+      --danger-soft: #3c211e;
+      --neutral-soft: #26302c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f1613;
+    --surface: #161f1c;
+    --surface-2: #1c2723;
+    --ink: #edf4f1;
+    --muted: #97aaa2;
+    --line: #2a3733;
+    --accent: #4fd8b8;
+    --accent-ink: #0b1a16;
+    --accent-soft: #1c3a33;
+    --warn: #e2a15a;
+    --warn-soft: #3a2c1a;
+    --danger: #e2857a;
+    --danger-soft: #3c211e;
+    --neutral-soft: #26302c;
+  }
+
+  * { box-sizing: border-box; }
+  /* 僅提供 PC Web 版本：固定桌面版面，不做手機響應式 */
+  body {
+    min-width: 1280px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Noto Sans TC", -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app {
+    display: grid;
+    grid-template-columns: 216px minmax(0,1fr);
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .brand {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    padding: 6px 10px 18px;
+  }
+  .brand b { display:block; color: var(--ink); font-size: 15px; font-family: "IBM Plex Sans","Noto Sans TC",sans-serif; margin-top: 2px; }
+
+  nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    background: transparent; border: none;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .nav-item .ic { font-size: 15px; }
+  .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+  .nav-item .badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: white;
+    font-size: 10.5px;
+    font-family: "IBM Plex Mono", monospace;
+    padding: 1px 6px;
+    border-radius: 999px;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  .sidebar-foot {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    padding: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  .main { padding: 22px 26px 60px; min-width: 0; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .topbar h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .demo-badge {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    background: var(--warn-soft);
+    color: var(--warn);
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .reset-btn {
+    margin-left: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+  .reset-btn:hover { color: var(--ink); border-color: var(--muted); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .stat .n { font-family: "IBM Plex Mono", monospace; font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat.alert .n { color: var(--danger); }
+  .stat.warn .n { color: var(--warn); }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .mini-list { display: grid; gap: 8px; }
+  .mini-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .mini-row .r-name { font-weight: 500; }
+  .mini-row .r-sub { color: var(--muted); font-size: 12px; }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .toolbar input[type="text"], .toolbar select {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 8px 12px;
+  }
+  .toolbar input[type="text"] { min-width: 200px; flex: 1; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .table-wrap { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; overflow-x: auto; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  thead th { background: var(--surface-2); font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.clickable:hover { background: var(--surface-2); cursor: pointer; }
+  td.empty, .empty-note { color: var(--muted); font-style: normal; }
+
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--neutral-soft); color: var(--muted); }
+  .pill[data-status="批核"] { background: var(--warn-soft); color: var(--warn); }
+  .pill[data-status="放款"], .pill[data-status="還款中"] { background: var(--accent-soft); color: var(--accent); }
+  .pill[data-status="逾期"] { background: var(--danger-soft); color: var(--danger); }
+  .pill[data-status="結清"] { background: var(--neutral-soft); color: var(--ink); }
+
+  .detail {
+    margin-top: 8px;
+    padding: 16px 18px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+  .detail-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .detail-tab {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 6px 14px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .detail-tab.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .detail-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin-bottom: 14px; }
+  .field .k { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+  .field .v { font-size: 14px; margin-top: 2px; }
+  .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn {
+    background: var(--accent); color: var(--accent-ink);
+    border: none; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+  .btn.danger { background: var(--danger); color: white; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 14px; }
+  .form-row label { display: block; }
+  .form-row .k { display: block; font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 5px; }
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 9px 12px;
+  }
+  .form-row textarea { resize: vertical; min-height: 60px; }
+
+  .sample-btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 16px; }
+  .sample-chip {
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
+    padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-family: "IBM Plex Mono", monospace;
+  }
+  .sample-chip:hover { color: var(--accent); border-color: var(--accent); }
+
+  .result-block { margin-top: 18px; }
+  .banner { padding: 12px 16px; border-radius: 8px; font-size: 13.5px; display: flex; gap: 10px; align-items: flex-start; margin-bottom: 16px; }
+  .banner.alert { background: var(--danger-soft); color: var(--danger); }
+  .banner.ok { background: var(--accent-soft); color: var(--accent); }
+  .banner .b-title { font-weight: 600; display: block; margin-bottom: 2px; }
+
+  .verify-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent); padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 500; margin-bottom: 16px; }
+
+  .caption { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); margin: 18px 0 8px; }
+  .empty-state { padding: 30px 10px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .identity { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: auto; font-size: 12px; color: var(--muted); }
+  .identity .chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+  .identity select { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 4px 8px; }
+  .env-badge { font-family: "IBM Plex Mono", monospace; font-size: 11px; background: var(--accent-soft); color: var(--accent); padding: 3px 9px; border-radius: 999px; }
+  .reset-btn { margin-left: 0; }
+
+  .banner.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill[data-status="已拒絕"] { background: var(--danger-soft); color: var(--danger); }
+  .pill.ok { background: var(--accent-soft); color: var(--accent); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.bad { background: var(--danger-soft); color: var(--danger); }
+
+  .check-row { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; margin: 6px 0 14px; color: var(--muted); }
+  .check-row input { margin-top: 4px; }
+  .meta-line { font-size: 12.5px; color: var(--muted); margin: 0 0 12px; }
+  .meta-line a { color: var(--accent); }
+  .detail-actions + .detail-fields { margin-top: 16px; }
+  .meta-line b { color: var(--ink); font-family: "IBM Plex Mono", monospace; }
+
+  .risk-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch; margin-bottom: 14px; }
+  .risk-score { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 18px; min-width: 150px; }
+  .risk-score .n { font-family: "IBM Plex Mono", monospace; font-size: 28px; font-weight: 600; }
+  .risk-score .l { font-size: 12px; color: var(--muted); }
+  .kv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; flex: 1; min-width: 260px; }
+  .kv { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+  .kv .k { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+  .kv .v { font-size: 14px; font-weight: 500; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tabs button { background: var(--surface); border: 1px solid var(--line); padding: 6px 14px; border-radius: 7px; font-size: 12.5px; color: var(--muted); }
+  .tabs button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  select.inline, input.inline { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; width: min(760px, 100%); max-height: 88vh; overflow: auto; }
+  .modal h3 { margin: 0 0 12px; font-size: 16px; }
+  .detail-layer { z-index: 40; }
+  .detail-modal { width: min(1000px, 100%); }
+  .detail-modal .detail { margin-top: 0; padding: 0; background: none; border: 0; }
+  .detail-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .detail-head h3 { margin: 0; }
+  .dlg-layer { z-index: 60; }
+  .dlg-box { width: min(440px, 100%); }
+  .dlg-msg { margin: 0 0 10px; line-height: 1.6; }
+  .modal .modal-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .modal textarea, .modal select { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; }
+  .qr { width: 132px; height: 132px; display: grid; grid-template-columns: repeat(11,1fr); gap: 1px; background: #fff; padding: 6px; border: 1px solid var(--line); margin: 8px 0; }
+  .qr i { background: #111; } .qr i.o { background: #fff; }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 9px 18px; border-radius: 8px; font-size: 13px; z-index: 60; display: none; }
+  .lock-screen { position: fixed; inset: 0; background: var(--paper); z-index: 80; display: none; flex-direction: column; gap: 14px; align-items: center; justify-content: center; }
+  .lock-screen.open { display: flex; }
+  .login-screen { position: fixed; inset: 0; z-index: 90; display: none; grid-template-columns: 560px minmax(0,1fr); background: var(--paper); }
+  .login-screen.open { display: grid; }
+  body:has(.login-screen.open) { overflow: hidden; }
+  .login-brand { background: var(--accent); color: var(--accent-ink); padding: 64px 56px; display: flex; flex-direction: column; justify-content: center; }
+  .login-brand .brand, .login-brand .brand b { color: var(--accent-ink); }
+  .login-brand h1 { font-size: 30px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .login-brand p { margin: 0 0 22px; font-size: 15px; line-height: 1.8; opacity: .92; }
+  .login-brand ul { margin: 0 0 32px; padding-left: 20px; font-size: 14.5px; line-height: 2; }
+  .login-foot { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; opacity: .8; }
+  .login-form { display: flex; align-items: center; justify-content: center; padding: 40px; overflow: auto; }
+  .login-box { width: 520px; }
+  .login-box h2 { font-size: 24px; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .login-box .lf { display: block; margin-bottom: 14px; }
+  .login-box .lf .k { display: block; font-size: 12px; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 5px; }
+  .login-box .lf input { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 10px 12px; }
+
+
+  .shortcuts { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .shortcuts button { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 18px; font-size: 13.5px; font-weight: 500; }
+  .shortcuts button:hover { border-color: var(--accent); color: var(--accent); }
+  .radio-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; margin: 6px 0 10px; }
+  .chart { width: 100%; height: auto; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
+  .chart text { fill: var(--muted); font-size: 10px; font-family: "IBM Plex Mono", monospace; }
+  .chart .ln { stroke: var(--accent); fill: none; stroke-width: 2; }
+  .chart .ar { fill: var(--accent-soft); opacity: .6; }
+  .chart .gd { stroke: var(--line); stroke-width: 1; }
+  ul.plain { margin: 0; padding-left: 18px; } ul.plain li { margin: 4px 0; }
+  details.faq { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; }
+  details.faq summary { cursor: pointer; font-weight: 500; }
+  details.faq p { margin: 8px 0 2px; color: var(--muted); }
+  td.wrap { white-space: normal; min-width: 220px; }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">LOAN MGMT SYSTEM<b>貸款管理系統</b></div>
+    <nav id="nav">
+      <button class="nav-item active" data-view="dashboard"><span class="ic">🏠</span>首頁</button>
+      <button class="nav-item" data-view="loans"><span class="ic">📋</span>貸款</button>
+      <button class="nav-item" data-view="customers"><span class="ic">👤</span>借款人</button>
+      <button class="nav-item" data-view="aml"><span class="ic">🛑</span>警示名單<span class="badge" id="amlBadge">0</span></button>
+      <button class="nav-item" data-view="repay"><span class="ic">💰</span>還款提示<span class="badge" id="repayBadge">0</span></button>
+      <button class="nav-item" data-view="payments"><span class="ic">💵</span>客戶還款</button>
+      <button class="nav-item" data-view="approvals"><span class="ic">✅</span><span id="navApprovalsLabel">審批清單</span><span class="badge" id="caseBadge">0</span></button>
+      <button class="nav-item" data-view="exports"><span class="ic">📤</span>匯出</button>
+      <button class="nav-item" data-view="settings"><span class="ic">⚙️</span>系統設定</button>
+      <button class="nav-item" data-view="guide"><span class="ic">📖</span>使用指引</button>
+    </nav>
+    <div class="sidebar-foot">原型 · 示範資料<br>不連接真實 TU／信貸資料庫</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1 id="viewTitle">首頁</h1>
+      <span class="demo-badge">示範資料 · 非正式系統</span>
+      <span class="env-badge">測試環境</span>
+      <div class="identity">
+        <span class="chip" id="idCompany"></span>
+        <span class="chip" id="idUser"></span>
+        <label style="display:none">示範切換角色 <select id="roleSel"></select></label>
+        <button class="reset-btn" id="logoutBtn">登出</button>
+        <button class="reset-btn" id="lockBtn">🔒 鎖定畫面</button>
+        <button class="reset-btn" id="resetBtn">重設示範資料</button>
+      </div>
+    </div>
+
+    <section class="view active" id="view-dashboard">
+      <div class="shortcuts" id="shortcuts">
+        <button data-goto="repay">💰 還款提示</button>
+        <button data-goto="customers">👤 還款人資料</button>
+        <button data-goto="payments">💵 客戶還款</button>
+        <button data-goto="loans">📋 貸款記錄</button>
+      </div>
+      <div class="stats" id="statTiles"></div>
+      <div class="grid-2">
+        <div class="panel">
+          <h2>待處理貸款（申請／待放款）</h2>
+          <div class="mini-list" id="pendingApprovalList"></div>
+        </div>
+        <div class="panel">
+          <h2>近期還款提醒</h2>
+          <div class="mini-list" id="dueSoonList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-loans">
+      <div class="panel">
+        <h2>貸款 » 客戶貸款資料</h2>
+        <div class="toolbar">
+          <input type="text" id="loanSearch" placeholder="搜尋客戶姓名、身份證或貸款編號…">
+          <select id="loanStatusFilter">
+            <option value="">全部狀態</option>
+            <option>申請</option><option>批核</option><option>放款</option><option>還款中</option><option>逾期</option><option>結清</option><option>已拒絕</option>
+          </select>
+          <button class="btn" id="loanAddBtn" style="margin-left:auto">＋ 新增貸款資料</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>編號</th><th>客戶</th><th>身份證</th><th>金額</th><th>期數</th><th>已收期數</th><th>忘繳</th><th>申請日期</th><th>狀態</th></tr></thead>
+            <tbody id="loanTableBody"></tbody>
+          </table>
+        </div>
+        <div id="loanDetail"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-credit">
+      <div class="panel">
+        <h2>客戶查詢 · 信貸分析</h2>
+        <p class="meta-line" id="creditStrip"></p>
+        <div class="tabs" id="creditTabs">
+          <button class="active" data-ctab="te">TE 信貸資料</button><button data-ctab="bankrupt">破產記錄</button><button data-ctab="court">法庭案件</button><button data-ctab="aml">警示名單</button>
+        </div>
+        <div id="creditMain">
+        <p class="empty-note" style="margin:-6px 0 10px">輸入香港身份證進行查詢（示範用假資料）。TE 信貸資料需客戶授權有效並扣減查詢額度。</p>
+        <div class="sample-btns">
+          範例快速帶入：
+          <button class="sample-chip" data-sample="B7654321">授權有效 B7654321</button>
+          <button class="sample-chip" data-sample="G1122334">AML＋授權過期 G1122334</button>
+          <button class="sample-chip" data-sample="Z0000000">查無資料 Z0000000</button>
+        </div>
+        <div class="form-row" style="grid-template-columns: 200px 1fr 160px;">
+          <label><span class="k">查詢模式</span><select id="creditMode"><option value="internal">內部／外債查詢</option><option value="te">TE 信貸資料</option></select></label>
+          <label><span class="k">香港身份證</span><input type="text" id="creditHkid" placeholder="例如 A1234567 或 A123456(7)" autocomplete="off"></label>
+          <label><span class="k">證件類型</span><select id="creditType"><option>香港身份證</option></select></label>
+        </div>
+        <p class="meta-line" id="creditMeta"></p>
+        <label class="check-row" id="creditConfirmRow"><input type="checkbox" id="creditConfirm"><span>我已確認：查詢對象正確、客戶已提供有效授權、符合業務目的及法遵要求，並已了解查詢費用及扣款規則。</span></label>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="creditQueryBtn">開始查詢</button>
+          <button class="btn ghost" id="creditClearBtn">清除畫面</button>
+        </div>
+        <div class="result-block" id="creditResult"></div>
+        </div>
+        <div id="creditAlt" style="display:none"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-customers">
+      <div class="panel">
+        <h2>還款人資料</h2>
+        <div class="toolbar">
+          <input type="text" id="custSearch" placeholder="搜尋姓名、身份證、電話或負責業務…">
+          <select id="custCollectorFilter"><option value="">全部業務</option></select>
+          <button class="btn" id="custAddLoanBtn" style="margin-left:auto">查詢貸款資料</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>姓名</th><th>身份證</th><th>電話</th><th>電郵</th><th>負責業務</th><th>貸款數</th><th>尚欠總額</th><th>忘繳期數</th></tr></thead>
+          <tbody id="custTableBody"></tbody>
+        </table></div>
+        <div id="custDetail"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-aml">
+      <div class="panel">
+        <h2>警示名單</h2>
+        <p class="empty-note" style="margin:-6px 0 14px">列為警示戶的客戶。新增貸款、查看借款人時會自動提示，貸款與借款人清單的姓名旁會顯示 ⚠。新增後立即生效。</p>
+        <div class="toolbar">
+          <input type="text" id="amlSearch" placeholder="搜尋身份證、姓名或原因…">
+          <select id="amlKindFilter"><option value="">全部類別</option></select>
+          <button class="btn" id="amlAddOpenBtn" style="margin-left:auto">＋ 新增警示戶</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>公司編號</th><th>日期</th><th>身份證</th><th>姓名</th><th>警示類別</th><th>原因</th><th>新增人</th></tr></thead>
+            <tbody id="amlTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-repay">
+      <div class="panel">
+        <h2>還款提示</h2>
+        <div class="toolbar"><select id="repayCollectorFilter"><option value="">全部業務</option></select></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>貸款編號</th><th>客戶</th><th>負責業務</th><th>期數</th><th>到期日</th><th>未收金額</th><th>狀態</th><th></th></tr></thead>
+            <tbody id="repayTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-approvals">
+      <div id="apprTabs"></div>
+      <div class="panel tab-panel" data-tg="appr" data-tp="case" id="casePanel">
+        <h2 id="caseTitle">審批清單 · 案件</h2>
+        <p class="empty-note" style="margin:-6px 0 14px" id="caseIntro"></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>案件編號</th><th>借款人</th><th>貸款</th><th>備註</th><th>經辦人</th><th>指定主管／簽核進度</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="caseTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="supPanels"></div>
+    </section>
+
+    <section class="view" id="view-payments">
+      <div class="banner warn"><span>ℹ</span><div><span class="b-title">待主管評估是否納入首版</span>客戶收款入帳屬貸款管理功能，目前列入 PRD 範圍，由主管評估是否首版上線或排第二階段（PRD 待核准 #16）。</div></div>
+      <div class="tabs"><button data-tgbtn="pay" data-k="cust" class="active">選擇客戶收款</button><button data-tgbtn="pay" data-k="rec">付款紀錄</button></div>
+      <div class="panel tab-panel" data-tg="pay" data-tp="cust" id="payCustPanel">
+        <h2>查詢客戶（點選借款人進行收款）</h2>
+        <div class="toolbar">
+          <input type="text" id="payCustSearch" placeholder="輸入身份證、姓名或電話查詢借款人…" autocomplete="off">
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>姓名</th><th>身份證</th><th>電話</th><th>負責業務</th><th>貸款數</th><th>尚欠總額</th><th>忘繳期數</th><th></th></tr></thead>
+          <tbody id="payCustBody"></tbody>
+        </table></div>
+        <div id="payCustCard"></div>
+      </div>
+      <div class="modal-backdrop detail-layer" id="payFormPanel" style="z-index:45"><div class="modal" style="width:min(820px,100%)">
+        <div class="detail-head"><h3>客戶收款入帳</h3><button class="btn ghost" id="payFormClose">關閉</button></div>
+        <div class="form-row" style="grid-template-columns:2fr 1fr 1fr 1fr">
+          <label><span class="k">貸款</span><select id="payLoan"></select></label>
+          <label><span class="k">期數</span><input type="text" id="payPeriod" readonly></label>
+          <label><span class="k">付款日期</span><input type="date" id="payDate"></label>
+          <label><span class="k">付款金額（HK$）</span><input type="number" id="payAmount" min="1" step="1"></label>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 2fr 140px">
+          <label><span class="k">付款方式</span><select id="payMethod"><option>現金</option><option>轉帳</option><option>支票</option></select></label>
+          <label><span class="k">收款業務</span><select id="payCollector"></select></label>
+          <label><span class="k">備註</span><input type="text" id="payNote" autocomplete="off"></label>
+          <label><span class="k">&nbsp;</span><button class="btn" id="payBtn" style="width:100%">入帳</button></label>
+        </div>
+        <div id="payInfo"></div>
+        <div class="hint">入帳後自動更新還款進度、尚欠與貸款狀態，並產生收據。更正或撤銷須申請並由審批主管核准。沖銷順序、多繳少繳與罰息規則待核准（PRD #14）。</div>
+      </div></div>
+      <div class="panel tab-panel" data-tg="pay" data-tp="rec" style="display:none">
+        <h2>付款紀錄</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>收據編號</th><th>日期</th><th>貸款</th><th>客戶</th><th>期數</th><th>金額</th><th>付款方式</th><th>收款業務</th><th>經辦</th><th>狀態</th><th></th></tr></thead>
+          <tbody id="payTableBody"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-exports">
+      <div class="banner warn"><span>ℹ</span><div><span class="b-title">待主管評估是否納入首版</span>所有匯出一律需審批主管核准；含完整身份證者需 2 位主管會簽（PRD 4.5、待核准 #15、#16）。</div></div>
+      <div class="panel">
+        <h2>申請匯出</h2>
+        <div class="form-row" style="grid-template-columns:1fr 1fr">
+          <label><span class="k">匯出對象</span><select id="expTarget"></select></label>
+          <label><span class="k">格式</span><select id="expFormat"><option value="xls">Excel</option><option value="csv">CSV（UTF-8）</option><option value="pdf">PDF（預覽）</option></select></label>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr">
+          <label><span class="k">用途（必填）</span><textarea id="expPurpose" placeholder="說明匯出目的，例如：月底對帳"></textarea></label>
+        </div>
+        <label class="check-row" id="expFullRow"><input type="checkbox" id="expFull"><span>需要完整身份證（預設遮罩；勾選後需 2 位審批主管會簽）</span></label>
+        <button class="btn" id="expBtn">提交申請</button>
+        <div class="hint">主管核准後可下載一次；檔案含浮水印（單號、匯出人、時間、用途）。示範中 Excel 以 .xls 簡易檔代替，PDF 以畫面預覽代替。下載有效期與筆數上限待核准。</div>
+      </div>
+      <div class="panel">
+        <h2>匯出申請</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>單號</th><th>申請人</th><th>對象</th><th>格式</th><th>用途</th><th>簽核進度</th><th>狀態</th><th></th></tr></thead>
+          <tbody id="expTableBody"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <h2>系統設定</h2>
+        <div class="tabs" id="settingsTabs"></div>
+        <div id="settingsBody"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-guide">
+      <div id="guideBody"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBg"><div class="modal" id="modalBox" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast"></div>
+<div class="login-screen open" id="loginScreen">
+  <section class="login-brand">
+    <div class="brand" style="padding:0 0 28px">LOAN MGMT SYSTEM<b style="font-size:22px">貸款管理系統</b></div>
+    <h1>借款系統（貸款管理）</h1>
+    <p>從新增貸款資料、審批、放款，到每期還款追蹤、忘繳提醒與郵件通知，全程留痕，重要決定一律由審批主管核准。</p>
+    <ul>
+      <li>新增貸款資料：借款人、貸款條件、每期還款預覽、文件核對</li>
+      <li>還款人資料可查：貸款、已收與尚欠一目了然</li>
+      <li>還款計劃：每一期是否已收、收了多少、哪一期忘繳</li>
+      <li>郵件通知：到期提醒、逾期通知、收款確認，並留下紀錄</li>
+    </ul>
+    <div class="login-foot">PC Web 版本 · 原型 · 示範資料，沒有後端，不寄出真實郵件</div>
+  </section>
+  <section class="login-form">
+    <div class="login-box">
+      <div class="env-badge" style="display:inline-block;margin-bottom:12px">測試環境</div>
+      <h2>登入</h2>
+      <label class="lf"><span class="k">帳號</span><input type="text" id="loginId" autocomplete="off"></label>
+      <label class="lf"><span class="k">密碼</span><input type="password" id="loginPw" autocomplete="off"></label>
+      <div class="banner alert" id="loginErr" style="display:none"></div>
+      <button class="btn" id="loginBtn" style="width:100%;padding:11px 16px">登入</button>
+      <div class="caption">測試帳號（密碼皆為 demo1234，點選一列可帶入）</div>
+      <div class="table-wrap"><table><thead><tr><th>帳號</th><th>角色</th><th>可做</th></tr></thead><tbody id="acctBody"></tbody></table></div>
+      <div class="hint">僅供測試環境，非真實帳號；正式登入方式與多因素驗證待核准。</div>
+    </div>
+  </section>
+</div>
+<div class="lock-screen" id="lockScreen">
+  <div style="font-size:40px">🔒</div>
+  <div>畫面已鎖定，客戶資料已隱藏</div>
+  <button class="btn" id="unlockBtn">解除鎖定</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function seedData(){
+    var s = {
+      loans: [
+        {id:'L-2401', name:'陳大文', hkid:'A1234567', amount:80000, term:12, apply:'2026-08-02', status:'還款中', rate:24, type:'私人貸款', purpose:'裝修', seedPaid:1},
+        {id:'L-2402', name:'李小明', hkid:'B7654321', amount:35000, term:6,  apply:'2026-09-01', status:'批核', rate:20, type:'私人貸款', purpose:'周轉', seedPaid:0},
+        {id:'L-2403', name:'黃美玲', hkid:'C2468135', amount:120000, term:24, apply:'2026-06-15', status:'還款中', rate:18, type:'分期貸款', purpose:'購買設備', seedPaid:2.5},
+        {id:'L-2404', name:'張志豪', hkid:'D9876543', amount:50000, term:12, apply:'2026-09-15', status:'申請', rate:24, type:'私人貸款', purpose:'進修', seedPaid:0},
+        {id:'L-2405', name:'林淑芬', hkid:'E1357924', amount:200000, term:18, apply:'2026-04-10', status:'逾期', rate:30, type:'私人貸款', purpose:'生意周轉', seedPaid:3},
+        {id:'L-2406', name:'王建國', hkid:'F3692581', amount:60000, term:12, apply:'2026-02-20', status:'結清', rate:22, type:'稅務貸款', purpose:'繳稅', seedPaid:12},
+        {id:'L-2407', name:'周佩珊', hkid:'G1122334', amount:45000, term:9,  apply:'2026-09-10', status:'批核', rate:24, type:'私人貸款', purpose:'周轉', seedPaid:0}
+      ],
+      customers: [
+        {hkid:'A1234567', name:'陳大文', nameEn:'CHAN TAI MAN', dob:'1985-03-12', gender:'M', phone:'91234567', email:'chan.taiman@example.com', address:'九龍旺角彌敦道 100 號 5 樓', job:'文員', income:18000},
+        {hkid:'B7654321', name:'李小明', nameEn:'LEE SIU MING', dob:'1990-05-02', gender:'M', phone:'92345678', email:'lee.siuming@example.com', address:'新界沙田大圍道 20 號 12 樓', job:'銷售員', income:22000},
+        {hkid:'C2468135', name:'黃美玲', nameEn:'WONG MEI LING', dob:'1979-11-30', gender:'F', phone:'93456789', email:'wong.meiling@example.com', address:'港島北角英皇道 300 號 8 樓', job:'店主', income:35000},
+        {hkid:'D9876543', name:'張志豪', nameEn:'CHEUNG CHI HO', dob:'1995-07-21', gender:'M', phone:'94567890', email:'cheung.chiho@example.com', address:'九龍觀塘鴻圖道 50 號 3 樓', job:'技術員', income:20000},
+        {hkid:'E1357924', name:'林淑芬', nameEn:'LAM SHUK FAN', dob:'1982-01-15', gender:'F', phone:'95678901', email:'lam.shukfan@example.com', address:'新界屯門青山公路 88 號 10 樓', job:'餐廳東主', income:40000},
+        {hkid:'F3692581', name:'王建國', nameEn:'WONG KIN KWOK', dob:'1975-09-09', gender:'M', phone:'96789012', email:'wong.kinkwok@example.com', address:'九龍深水埗長沙灣道 200 號 6 樓', job:'司機', income:19000},
+        {hkid:'G1122334', name:'周佩珊', nameEn:'CHOW PUI SAN', dob:'1988-11-19', gender:'F', phone:'97890123', email:'chow.puisan@example.com', address:'港島灣仔軒尼詩道 150 號 9 樓', job:'會計助理', income:25000}
+      ],
+      notices: [],
+      aml: [
+        {code:'FIN-018', date:'2026-08-20', hkid:'G1122334', name:'周佩珊', kind:'洗黑錢疑點', by:'示範資料', content:'短期內於多間公司密集申請借貸，疑似洗黑錢，暫緩放款。'},
+        {code:'FIN-005', date:'2026-07-11', hkid:'H5566778', name:'—', kind:'證件／地址疑點', by:'示範資料', content:'身份證地址與申報地址不符，已列入觀察名單。'}
+      ],
+      creditDb: {},
+      testCustomers: [],
+      company: {name:'示範財務有限公司', balance:100, fee:25},
+      txns: [{time:'2026-09-19 09:00', type:'加值', amount:100, ref:'TXN-0001'}],
+      users: [
+        {name:'陳小欣', role:'approver', branch:'旺角分行', active:true, pending:false},
+        {name:'李審批', role:'approver', branch:'中環分行', active:true, pending:false},
+        {name:'王主管', role:'supervisor', branch:'總部', active:true, pending:false},
+        {name:'張主管', role:'supervisor', branch:'中環分行', active:true, pending:false},
+        {name:'黃管理', role:'company', branch:'總部', active:true, pending:false},
+        {name:'林系統', role:'sysadmin', branch:'總部', active:true, pending:false},
+        {name:'何嘉欣', role:'approver', branch:'銅鑼灣分行', active:true, pending:false}
+      ],
+      services: [
+        {name:'郵件通知服務', version:'v1.0', sync:'08:00', err:'0.0%', up:true}
+      ],
+      cases: [],
+      payments: [],
+      corrections: [],
+      exports: [],
+      audit: [],
+      checks: {}
+    };
+    var col = {A1234567:'陳小欣', B7654321:'何嘉欣', C2468135:'陳小欣', D9876543:'何嘉欣', E1357924:'陳小欣', F3692581:'何嘉欣', G1122334:'陳小欣'};
+    s.customers.forEach(function(c){ c.collector = col[c.hkid] || ''; });
+    s.loans.forEach(function(l){
+      l.start = l.apply;
+      l.paid = Math.round(pmtOf(l) * (l.seedPaid || 0));
+      delete l.seedPaid;
+    });
+    return s;
+  }
+
+  var ROLES = {approver:'審核人員', supervisor:'審批主管', company:'公司管理員', sysadmin:'系統管理員'};
+  var ME = {approver:'李審批', supervisor:'王主管', company:'黃管理', sysadmin:'林系統'};
+  var NAV_ROLES = {
+    dashboard:['approver','supervisor','company','sysadmin'],
+    loans:['approver','supervisor','company'],
+    customers:['approver','supervisor','company'],
+    credit:[],
+    aml:['approver','supervisor','company'],
+    repay:['approver','supervisor','company'],
+    payments:['approver','supervisor','company'],
+    approvals:['approver','supervisor'],
+    exports:['approver','supervisor','company','sysadmin'],
+    settings:['company','sysadmin'],
+    guide:['approver','supervisor','company','sysadmin']
+  };
+  var role = 'approver';
+  try{ var sr = localStorage.getItem('lms_role'); if(sr && ROLES[sr]) role = sr; }catch(e){}
+
+  var state = seedData();
+  var currentView = 'dashboard';
+  var expandedLoan = null;
+  var detailTab = '申請';
+
+  var statusOrder = ['申請','批核','放款','還款中','結清'];
+
+  function fmtMoney(n){ return 'HK$' + n.toLocaleString('en-HK'); }
+  function todayStr(){ var d = new Date(); return d.toISOString().slice(0,10); }
+  function nowTime(){ var d = new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function maskId(h){ return h.length > 3 ? h.charAt(0) + '****' + h.slice(-2) : h; }
+  function stamp(){ return todayStr() + ' ' + nowTime(); }
+  function addMonths(dateStr, n){
+    var p = dateStr.split('-').map(Number);
+    var d = new Date(Date.UTC(p[0], p[1]-1+n, p[2]));
+    return d.toISOString().slice(0,10);
+  }
+  function statusCls(s){ return s==='逾期'?'bad':(s==='部分付款'?'warn':(s==='準時'?'ok':'')); }
+  function can(perm){
+    var m = {
+      seeDetail: ['approver','supervisor'],
+      addCase: ['approver'],
+      addNote: ['approver','supervisor','company'],
+      addLoan: ['approver','supervisor','company'],
+      addPayment: ['approver','supervisor','company'],
+      assignCollector: ['approver','supervisor','company'],
+      seeUnmasked: ['approver','supervisor']
+    };
+    return (m[perm] || []).indexOf(role) > -1;
+  }
+
+  var toastTimer;
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.style.display = 'none'; }, 2600);
+  }
+  function log(action, detail){
+    state.audit.unshift({time: stamp(), user: ME[role], role: ROLES[role], action: action, detail: detail || ''});
+  }
+  function openModal(html){
+    document.getElementById('modalBox').innerHTML = html;
+    document.getElementById('modalBg').classList.add('open');
+    var c = document.querySelectorAll('#modalBox [data-close]');
+    c.forEach(function(b){ b.addEventListener('click', closeModal); });
+  }
+  function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
+  document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target === this) closeModal(); });
+  // 確認／輸入對話框：疊在主彈窗上層，取消後不影響底下的表單
+  var dlgBg = document.createElement('div');
+  dlgBg.className = 'modal-backdrop dlg-layer';
+  dlgBg.innerHTML = '<div class="modal dlg-box" role="alertdialog" aria-modal="true"></div>';
+  document.body.appendChild(dlgBg);
+  function closeDialog(){ dlgBg.classList.remove('open'); }
+  function askDialog(o){
+    var box = dlgBg.firstChild;
+    box.innerHTML = '<h3>' + esc(o.title || '請確認') + '</h3><p class="dlg-msg">' + esc(o.msg || '') + '</p>' +
+      (o.input ? '<textarea id="dlgInput" rows="3" placeholder="' + esc(o.placeholder || '') + '">' + esc(o.value || '') + '</textarea><div class="banner alert" id="dlgErr" style="display:none;margin:8px 0 0">請填寫內容</div>' : '') +
+      '<div class="modal-foot"><button class="btn ghost" id="dlgCancel">取消</button><button class="btn ' + (o.danger ? 'danger' : '') + '" id="dlgOk">' + esc(o.okLabel || '確定') + '</button></div>';
+    dlgBg.classList.add('open');
+    var inp = document.getElementById('dlgInput');
+    if(inp) inp.focus();
+    document.getElementById('dlgCancel').addEventListener('click', closeDialog);
+    document.getElementById('dlgOk').addEventListener('click', function(){
+      var v = inp ? inp.value.trim() : '';
+      if(inp && o.required && !v){ document.getElementById('dlgErr').style.display = ''; return; }
+      closeDialog(); o.onOk(v);
+    });
+  }
+  dlgBg.addEventListener('click', function(e){ if(e.target === this) closeDialog(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if(dlgBg.classList.contains('open')) closeDialog();
+    else if(document.getElementById('modalBg').classList.contains('open')) closeModal();
+    else if(payFormOpen) closePayForm();
+    else if(selectedPayCust) closePayCust();
+    else if(expandedLoan) closeLoanDetail();
+    else if(selectedCust) closeCustDetail();
+  });
+
+  // ---------- identity / navigation ----------
+  var roleSel = document.getElementById('roleSel');
+  roleSel.innerHTML = Object.keys(ROLES).map(function(k){ return '<option value="'+k+'">'+ROLES[k]+'</option>'; }).join('');
+  roleSel.value = role;
+  roleSel.addEventListener('change', function(){
+    role = roleSel.value;
+    try{ localStorage.setItem('lms_role', role); }catch(e){}
+    log('切換角色', '切換為' + ROLES[role]);
+    lastResult = null;
+    document.getElementById('creditResult').innerHTML = '';
+    applyRole();
+    if(NAV_ROLES[currentView].indexOf(role) < 0) currentView = 'dashboard';
+    setView(currentView);
+    renderAll();
+  });
+
+  function applyRole(){
+    document.getElementById('idCompany').textContent = '公司：' + state.company.name;
+    document.getElementById('idUser').textContent = '使用者：' + ME[role] + ' · ' + ROLES[role];
+    document.querySelectorAll('.nav-item').forEach(function(b){
+      b.style.display = NAV_ROLES[b.dataset.view].indexOf(role) > -1 ? '' : 'none';
+    });
+    document.getElementById('amlAddOpenBtn').style.display = can('addNote') ? '' : 'none';
+    document.getElementById('loanAddBtn').style.display = can('addLoan') ? '' : 'none';
+  }
+
+  document.getElementById('nav').addEventListener('click', function(e){
+    var btn = e.target.closest('.nav-item');
+    if(!btn) return;
+    setView(btn.dataset.view);
+  });
+
+  document.getElementById('shortcuts').addEventListener('click', function(e){
+    var b = e.target.closest('[data-goto]'); if(!b) return;
+    if(NAV_ROLES[b.dataset.goto].indexOf(role) < 0){ toast('目前角色（' + ROLES[role] + '）沒有此頁權限'); return; }
+    setView(b.dataset.goto);
+    
+  });
+  document.getElementById('lockBtn').addEventListener('click', function(){
+    document.getElementById('lockScreen').classList.add('open');
+    log('鎖定畫面', '');
+  });
+  document.getElementById('unlockBtn').addEventListener('click', function(){
+    document.getElementById('lockScreen').classList.remove('open');
+  });
+
+  function setView(v){
+    if(NAV_ROLES[v].indexOf(role) < 0) v = 'dashboard';
+    currentView = v;
+    document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.toggle('active', b.dataset.view === v); });
+    document.querySelectorAll('.view').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('view-'+v).classList.add('active');
+    var titles = {dashboard:'首頁', loans:'貸款 » 客戶貸款資料', customers:'還款人資料', credit:'客戶查詢 · 信貸分析', aml:'警示名單', repay:'還款提示', payments:'客戶還款', approvals:(role === 'approver' ? '已送審清單' : '審批清單'), exports:'匯出', settings:'系統設定', guide:'使用指引'};
+    document.getElementById('viewTitle').textContent = titles[v];
+    try{ localStorage.setItem('lms_view', v); }catch(e){}
+    if(v === 'credit') updateCreditMeta();
+  }
+
+  // ---------- dashboard ----------
+  function renderDashboard(){
+    var applyCount = visibleLoans().filter(function(l){ return l.status === '申請'; }).length;
+    var readyCount = visibleLoans().filter(function(l){ return l.status === '批核'; }).length;
+    var overdueLoans = visibleLoans().filter(function(l){ return l.status === '逾期'; }).length;
+    var received = 0, outstanding = 0;
+    visibleLoans().forEach(function(l){ if(hasSchedule(l)){ var s = loanSummary(l); received += s.received; if(l.status !== '結清') outstanding += s.out; } });
+    var tiles = [
+      {n: visibleLoans().length, l:'總貸款筆數'},
+      {n: applyCount, l:'申請中', cls: applyCount ? 'warn' : ''},
+      {n: readyCount, l:'已批核待放款', cls: readyCount ? 'warn' : ''},
+      {n: overdueLoans, l:'逾期貸款', cls: overdueLoans ? 'alert' : ''},
+      {n: fmtMoney(received), l:'累計已收金額'},
+      {n: fmtMoney(outstanding), l:'未收總額（放款中）'}
+    ];
+    if(role === 'supervisor'){ var pm = pendingForMe(); tiles.push({n: pm, l:'待我核准（案件、匯出、付款更正）', cls: pm ? 'warn' : ''}); }
+    if(role === 'sysadmin') tiles.push({n: state.audit.length, l:'本次稽核事件'});
+    document.getElementById('statTiles').innerHTML = tiles.map(function(t){
+      return '<div class="stat '+(t.cls||'')+'"><div class="n">'+t.n+'</div><div class="l">'+t.l+'</div></div>';
+    }).join('');
+
+    var panels = document.querySelector('#view-dashboard .grid-2');
+    if(role === 'sysadmin'){
+      panels.innerHTML = '<div class="panel" style="grid-column:1/-1"><h2>最近系統事件</h2><div class="mini-list">' +
+        (state.audit.slice(0,5).map(function(a){ return '<div class="mini-row"><div><div class="r-name">'+esc(a.action)+'</div><div class="r-sub">'+esc(a.time)+' · '+esc(a.user)+' · '+esc(a.detail)+'</div></div></div>'; }).join('') || '<div class="empty-state">尚無事件</div>') +
+        '</div></div>';
+      document.getElementById('amlBadge').style.display = 'none';
+      document.getElementById('repayBadge').style.display = 'none';
+      return;
+    }
+    if(!document.getElementById('pendingApprovalList')){
+      panels.innerHTML = '<div class="panel"><h2>待處理貸款（申請／待放款）</h2><div class="mini-list" id="pendingApprovalList"></div></div><div class="panel"><h2>近期還款提醒</h2><div class="mini-list" id="dueSoonList"></div></div>';
+    }
+    var pending = visibleLoans().filter(function(l){ return l.status === '申請' || l.status === '批核'; });
+    document.getElementById('pendingApprovalList').innerHTML = pending.length ? pending.map(function(l){
+      return '<div class="mini-row"><div><div class="r-name">'+esc(l.name)+'</div><div class="r-sub">'+l.id+' · '+fmtMoney(l.amount)+' · '+l.term+' 期</div></div><span class="pill" data-status="'+l.status+'">'+l.status+'</span></div>';
+    }).join('') : '<div class="empty-state">目前沒有待處理貸款</div>';
+
+    var rem = reminderList();
+    document.getElementById('dueSoonList').innerHTML = rem.length ? rem.slice(0, 4).map(function(r){
+      return '<div class="mini-row"><div><div class="r-name">'+esc(r.loan.name)+'</div><div class="r-sub">'+r.loan.id+' · 第 '+r.n.n+' 期 · 到期 '+r.n.due+'</div></div><span class="pill" data-status="'+(r.n.late?'逾期':'還款中')+'">'+(r.n.late?('忘繳 '+r.n.days+' 天'):fmtMoney(r.n.left))+'</span></div>';
+    }).join('') : '<div class="empty-state">目前沒有還款提醒</div>';
+
+    document.getElementById('amlBadge').textContent = state.aml.length;
+    document.getElementById('amlBadge').style.display = state.aml.length ? '' : 'none';
+    var lateN = rem.filter(function(r){ return r.n.late; }).length;
+    document.getElementById('repayBadge').textContent = lateN;
+    document.getElementById('repayBadge').style.display = lateN ? '' : 'none';
+  }
+
+  // ---------- loan calculation & schedule ----------
+  function pmtOf(l){
+    var r = (l.rate || 0) / 1200, n = l.term, P = l.amount;
+    return r > 0 ? Math.round(P * r / (1 - Math.pow(1 + r, -n))) : Math.round(P / n);
+  }
+  function totalOf(l){ return pmtOf(l) * l.term; }
+  function hasSchedule(l){ return ['放款','還款中','逾期','結清'].indexOf(l.status) > -1; }
+  function dayShift(dateStr, d){
+    var p = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(p[0], p[1]-1, p[2]+d)).toISOString().slice(0,10);
+  }
+  function scheduleOf(l){
+    if(!hasSchedule(l)) return [];
+    var pmt = pmtOf(l), t = todayStr(), base = l.start || l.apply, out = [];
+    for(var i = 1; i <= l.term; i++){
+      var due = addMonths(base, i), rec = Math.max(0, Math.min(pmt, l.paid - (i - 1) * pmt));
+      var late = due < t && rec < pmt;
+      var days = late ? Math.round((new Date(t) - new Date(due)) / 864e5) : 0;
+      var st = rec >= pmt ? '已收' : (late ? (rec > 0 ? '部分收款・忘繳' : '忘繳') : (rec > 0 ? '部分收款' : '未到期'));
+      out.push({n: i, due: due, amt: pmt, rec: rec, left: pmt - rec, st: st, late: late, days: days});
+    }
+    return out;
+  }
+  function loanSummary(l){
+    var s = scheduleOf(l), pmt = pmtOf(l), total = totalOf(l);
+    var late = s.filter(function(x){ return x.late; });
+    return {pmt: pmt, total: total, sched: s,
+      done: s.filter(function(x){ return x.st === '已收'; }).length,
+      lateCount: late.length, lateAmount: late.reduce(function(a, x){ return a + x.left; }, 0),
+      received: Math.min(l.paid, total), out: Math.max(0, total - l.paid),
+      next: s.filter(function(x){ return x.st !== '已收'; })[0]};
+  }
+  function refreshLoanStatuses(){
+    state.loans.forEach(function(l){
+      if(['放款','還款中','逾期'].indexOf(l.status) < 0) return;
+      var s = loanSummary(l);
+      if(l.paid >= s.total) l.status = '結清';
+      else if(s.lateCount > 0) l.status = '逾期';
+      else if(l.paid > 0 || l.status === '還款中') l.status = '還款中';
+      else l.status = '放款';
+    });
+  }
+  function reminderList(){
+    var out = [], t = todayStr(), soon = dayShift(t, 14);
+    state.loans.forEach(function(l){
+      if(!hasSchedule(l) || l.status === '結清') return;
+      var s = loanSummary(l), n = s.next; if(!n) return;
+      if(n.late || n.due <= soon) out.push({loan: l, n: n, lateCount: s.lateCount});
+    });
+    out.sort(function(a, b){ return ((b.n.late ? 1 : 0) - (a.n.late ? 1 : 0)) || (a.n.due < b.n.due ? -1 : 1); });
+    return out;
+  }
+  function findCustomer(hkid){ return state.customers.filter(function(c){ return c.hkid === hkid; })[0]; }
+  function loanCases(l){ return state.cases.filter(function(c){ return c.loan === l.id; }); }
+  function activeCase(l){ return loanCases(l).filter(function(c){ return c.status !== '已核准' && c.status !== '已拒絕'; })[0]; }
+  function schedPill(st){
+    var cls = st === '已收' ? 'ok' : (st.indexOf('忘繳') > -1 ? 'bad' : (st.indexOf('部分') > -1 ? 'warn' : ''));
+    return '<span class="pill ' + cls + '">' + st + '</span>';
+  }
+
+  // ---------- 負責業務（上門收款）----------
+  function collectors(){ return state.users.filter(function(u){ return u.role === 'approver' && u.active; }).map(function(u){ return u.name; }); }
+  function collectorOptionsHtml(){ return '<option value="">未指派</option>' + collectors().map(function(n){ return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join(''); }
+  function collectorOf(l){ var c = findCustomer(l.hkid); return c ? (c.collector || '') : ''; }
+  function refreshCollectorFilters(){
+    ['custCollectorFilter','repayCollectorFilter'].forEach(function(id){
+      var el = document.getElementById(id), cur = el.value;
+      el.innerHTML = '<option value="">全部業務</option>' + collectors().map(function(n){ return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('') + '<option value="__none">未指派</option>';
+      el.value = cur;
+    });
+  }
+  function applyDefaultCollectorFilter(){
+    document.getElementById('custCollectorFilter').value = '';
+    document.getElementById('repayCollectorFilter').value = '';
+    renderCustomers(); renderRepay();
+  }
+  function effFilter(id){ return document.getElementById(id).value; }
+  function visibleLoans(){ return state.loans; }
+  function collectorMatch(co, f){ return !f || (f === '__none' ? !co : co === f); }
+
+  // ---------- loans ----------
+  var DETAIL_TABS = ['申請','批核','放款','還款計劃'];
+  function renderLoans(){
+    var q = (document.getElementById('loanSearch').value || '').trim().toUpperCase();
+    var sf = document.getElementById('loanStatusFilter').value;
+    var rows = state.loans.filter(function(l){
+      var mq = !q || l.name.toUpperCase().indexOf(q) > -1 || l.id.indexOf(q) > -1 || l.hkid.indexOf(q) > -1;
+      return mq && (!sf || l.status === sf);
+    });
+    document.getElementById('loanTableBody').innerHTML = rows.length ? rows.map(function(l){
+      var s = hasSchedule(l) ? loanSummary(l) : null;
+      return '<tr class="clickable" data-id="' + l.id + '"><td>' + l.id + '</td><td>' + esc(l.name) + alertMark(l.hkid) + '</td><td>' + (can('seeUnmasked') ? l.hkid : maskId(l.hkid)) + '</td><td>' + fmtMoney(l.amount) + '</td><td>' + l.term + ' 期</td>' +
+        '<td>' + (s ? s.done + ' / ' + l.term : '—') + '</td><td>' + (s && s.lateCount ? '<span class="pill bad">' + s.lateCount + ' 期</span>' : '—') + '</td><td>' + l.apply + '</td>' +
+        '<td><span class="pill" data-status="' + l.status + '">' + l.status + '</span></td></tr>';
+    }).join('') : '<tr><td colspan="9" class="empty-note">查無符合的貸款資料</td></tr>';
+    renderLoanDetail();
+  }
+
+  // 頁籤：一頁有多個表格時，用頁籤切換（tabState 記住目前選的頁籤）
+  var tabState = {};
+  function tabsHtml(group, defs, dflt){
+    var cur = tabState[group] || dflt;
+    return '<div class="tabs">' + defs.map(function(d){ return '<button data-tgbtn="' + group + '" data-k="' + d[0] + '" class="' + (d[0] === cur ? 'active' : '') + '">' + d[1] + '</button>'; }).join('') + '</div>';
+  }
+  function tabPanel(group, key, dflt, html){
+    return '<div class="tab-panel" data-tg="' + group + '" data-tp="' + key + '"' + ((tabState[group] || dflt) === key ? '' : ' style="display:none"') + '>' + html + '</div>';
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-tgbtn]'); if(!b) return;
+    var g = b.dataset.tgbtn, k = b.dataset.k, root = b.closest('.view, .detail');
+    tabState[g] = k;
+    root.querySelectorAll('[data-tgbtn="' + g + '"]').forEach(function(x){ x.classList.toggle('active', x === b); });
+    root.querySelectorAll('.tab-panel[data-tg="' + g + '"]').forEach(function(p){ p.style.display = p.dataset.tp === k ? '' : 'none'; });
+  });
+
+  // 明細以彈窗呈現（與其他彈窗同樣式）
+  function showDetailModal(el, title, inner, onClose){
+    el.className = 'modal-backdrop open detail-layer';
+    el.innerHTML = '<div class="modal detail-modal" role="dialog" aria-modal="true"><div class="detail-head"><h3>' + title + '</h3><button class="btn ghost" data-dclose>關閉</button></div>' + inner + '</div>';
+    el.querySelector('[data-dclose]').addEventListener('click', onClose);
+    el.onclick = function(e){ if(e.target === el) onClose(); };
+  }
+  function hideDetailModal(el){ el.className = ''; el.innerHTML = ''; el.onclick = null; }
+  function closeLoanDetail(){ expandedLoan = null; renderLoanDetail(); }
+  function closeCustDetail(){ selectedCust = null; renderCustDetail(); }
+
+  function renderLoanDetail(){
+    var el = document.getElementById('loanDetail');
+    if(!expandedLoan){ hideDetailModal(el); return; }
+    var loan = state.loans.filter(function(l){ return l.id === expandedLoan; })[0];
+    if(!loan){ hideDetailModal(el); return; }
+    var s = loanSummary(loan), ac = activeCase(loan), lc = loanCases(loan).slice(-1)[0];
+    var content = {
+      '申請': [['借款人', esc(loan.name)], ['負責業務（收款）', esc(collectorOf(loan) || '未指派')], ['身份證', can('seeUnmasked') ? loan.hkid : maskId(loan.hkid)], ['貸款類別', esc(loan.type || '私人貸款')], ['貸款金額', fmtMoney(loan.amount)],
+        ['年利率', (loan.rate || 0) + '%'], ['期數', loan.term + ' 期'], ['還款方式', '等額本息（按月）'], ['每期還款', fmtMoney(s.pmt)], ['總還款', fmtMoney(s.total)],
+        ['總利息', fmtMoney(s.total - loan.amount)], ['申請日期', loan.apply], ['用途', esc(loan.purpose || '—')]],
+      '批核': [['批核狀態', loan.status === '申請' ? (ac ? '待主管核准（' + ac.id + '）' : '尚未提交審批') : (loan.status === '已拒絕' ? '已拒絕' : '已批核')],
+        ['審批案件', lc ? lc.id + ' · ' + lc.status : '—'], ['指定主管', lc && lc.assignees.length ? esc(lc.assignees.join('、')) : '—'],
+        ['簽核方式', lc ? (lc.mode === 'all' ? '全部會簽' : '任一位核准') : '—']],
+      '放款': [['放款狀態', hasSchedule(loan) ? '已放款' : '未放款'], ['放款日期（首期起算）', hasSchedule(loan) ? (loan.start || loan.apply) : '—'],
+        ['首期到期日', hasSchedule(loan) ? addMonths(loan.start || loan.apply, 1) : '—'], ['目前狀態', loan.status], ['貸款編號', loan.id]]
+    };
+
+    var body;
+    if(detailTab === '還款計劃'){
+      if(!hasSchedule(loan)){
+        body = '<div class="empty-state">放款後才會產生還款計劃（目前狀態：' + loan.status + '）。</div>';
+      } else {
+        body = '<div class="kv-grid" style="margin-bottom:12px">' +
+          kv('分幾期', loan.term + ' 期') + kv('已收期數', s.done + ' 期') + kv('忘繳期數', '<span style="color:' + (s.lateCount ? 'var(--danger)' : 'inherit') + '">' + s.lateCount + ' 期</span>') +
+          kv('忘繳金額', fmtMoney(s.lateAmount)) + kv('已收金額', fmtMoney(s.received)) + kv('尚欠金額', fmtMoney(s.out)) + kv('每期應還', fmtMoney(s.pmt)) + kv('總還款', fmtMoney(s.total)) + '</div>' +
+          '<div class="table-wrap"><table><thead><tr><th>期數</th><th>到期日</th><th>應收金額</th><th>已收金額</th><th>未收金額</th><th>狀態</th><th>逾期天數</th></tr></thead><tbody>' +
+          s.sched.map(function(x){ return '<tr><td>' + x.n + '</td><td>' + x.due + '</td><td>' + fmtMoney(x.amt) + '</td><td>' + fmtMoney(x.rec) + '</td><td>' + fmtMoney(x.left) + '</td><td>' + schedPill(x.st) + '</td><td>' + (x.late ? x.days + ' 天' : '—') + '</td></tr>'; }).join('') +
+          '</tbody></table></div>';
+      }
+    } else {
+      body = '<div class="detail-fields">' + content[detailTab].map(function(f){ return '<div class="field"><div class="k">' + f[0] + '</div><div class="v">' + f[1] + '</div></div>'; }).join('') + '</div>';
+    }
+
+    var actions = '';
+    if(loan.status === '申請'){
+      if(ac) actions += '<span class="hint">審批中：' + ac.id + '（' + ac.status + '）</span>';
+      else if(role === 'approver') actions += '<button class="btn" id="submitCaseBtn">提交審批主管</button>';
+      else actions += '<span class="hint">貸款申請須由審核人員審核後提交審批主管。</span>';
+    }
+    if(loan.status === '批核' && (role === 'approver' || role === 'company')) actions += '<button class="btn" id="disburseBtn">確認放款</button>';
+    if(hasSchedule(loan) && loan.status !== '結清'){
+      if(can('addPayment')) actions += '<button class="btn ghost" id="goPayBtn">前往入帳</button>';
+      actions += '<button class="btn ghost" id="mailBtn">發送郵件通知</button>';
+    }
+    if(loan.status === '結清') actions += '<button class="btn ghost" id="mailBtn">發送結清確認郵件</button>';
+
+    showDetailModal(el, '貸款 ' + loan.id + ' · ' + esc(loan.name), '<div class="detail"><div class="detail-tabs">' + DETAIL_TABS.map(function(t){
+        return '<button class="detail-tab' + (t === detailTab ? ' active' : '') + '" data-tab="' + t + '">' + t + '</button>';
+      }).join('') + '</div>' + body + '<div class="detail-actions" style="margin-top:12px">' + actions + '</div></div>', closeLoanDetail);
+
+    el.querySelectorAll('.detail-tab').forEach(function(b){ b.addEventListener('click', function(){ detailTab = b.dataset.tab; renderLoanDetail(); }); });
+    var b1 = document.getElementById('submitCaseBtn'); if(b1) b1.addEventListener('click', function(){ openSubmitLoanCase(loan.id); });
+    var b2 = document.getElementById('disburseBtn'); if(b2) b2.addEventListener('click', function(){
+      loan.status = '放款'; loan.start = todayStr();
+      log('確認放款', loan.id + ' · ' + fmtMoney(loan.amount) + '，首期 ' + addMonths(loan.start, 1));
+      toast('已放款，已產生還款計劃'); detailTab = '還款計劃'; renderAll();
+    });
+    var b3 = document.getElementById('goPayBtn'); if(b3) b3.addEventListener('click', function(){ goPayments(loan.id); });
+    var b4 = document.getElementById('mailBtn'); if(b4) b4.addEventListener('click', function(){
+      var kind = loan.status === '結清' ? '結清確認' : (s.lateCount ? '逾期通知' : '到期提醒');
+      openMail(loan.id, kind);
+    });
+  }
+
+  document.getElementById('loanTableBody').addEventListener('click', function(e){
+    var tr = e.target.closest('tr[data-id]');
+    if(!tr) return;
+    expandedLoan = tr.dataset.id;
+    detailTab = '申請';
+    renderLoanDetail();
+  });
+  document.getElementById('loanSearch').addEventListener('input', renderLoans);
+  document.getElementById('loanStatusFilter').addEventListener('change', renderLoans);
+
+  function goPayments(loanId){
+    var gl = state.loans.filter(function(x){ return x.id === loanId; })[0];
+    if(gl) selectedPayCust = gl.hkid;
+    closeLoanDetail();
+    document.getElementById('payCustSearch').value = '';
+    setView('payments'); renderPayments();
+    var sel = document.getElementById('payLoan'); sel.value = loanId; fillPayForm();
+    payFormOpen = true; renderPayments();
+  }
+
+  // ---- 提交貸款審批（審核人員 → 審批主管）----
+  function openSubmitLoanCase(loanId){
+    var l = state.loans.filter(function(x){ return x.id === loanId; })[0]; if(!l) return;
+    var sups = supervisors();
+    openModal('<h3>提交審批主管 · ' + l.id + '</h3>' +
+      '<p>' + esc(l.name) + ' · ' + fmtMoney(l.amount) + ' · ' + l.term + ' 期 · 年利率 ' + (l.rate || 0) + '%</p>' +
+      '<div class="form-row" style="grid-template-columns:1fr"><label><span class="k">審核意見（必填）</span><textarea id="lcNote" placeholder="例如：收入穩定，文件齊全，建議批核"></textarea></label></div>' +
+      '<p>指定審批主管（可多位）：</p>' +
+      sups.map(function(u, k){ return '<label class="check-row" style="margin:4px 0"><input type="checkbox" name="lcsup" value="' + esc(u.name) + '"' + (k === 0 ? ' checked' : '') + '><span>' + esc(u.name) + '（' + esc(u.branch) + '）</span></label>'; }).join('') +
+      '<div class="form-row" style="grid-template-columns:1fr;margin-top:10px"><label><span class="k">簽核方式</span><select id="lcMode"><option value="any">任一位主管核准即生效</option><option value="all">全部指定主管會簽</option></select></label></div>' +
+      '<div class="hint">貸款申請一律由審批主管批核；金額門檻與會簽人數規則待核准。</div>' +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn" id="lcSubmitBtn">提交</button></div>');
+    document.getElementById('lcSubmitBtn').addEventListener('click', function(){
+      var note = document.getElementById('lcNote').value.trim();
+      var names = Array.prototype.slice.call(document.querySelectorAll('#modalBox [name=lcsup]:checked')).map(function(x){ return x.value; });
+      if(!note){ toast('請填寫審核意見'); return; }
+      if(!names.length){ toast('請至少指定一位審批主管'); return; }
+      var id = 'CASE-' + new Date().getFullYear() + '-' + String(state.cases.length + 1).padStart(3, '0');
+      state.cases.push({id: id, loan: l.id, hkid: l.hkid, name: l.name, amount: l.amount, term: l.term, level: '—', note: note, by: meName(), assignees: names, mode: document.getElementById('lcMode').value, approvals: [], status: '待主管核准'});
+      log('提交貸款審批', id + ' · ' + l.id + ' → ' + names.join('、'));
+      closeModal(); toast('已提交審批主管 ' + id); renderAll();
+    });
+  }
+
+  // ---- 新增貸款資料 ----
+  function nextLoanId(){
+    var max = 2400;
+    state.loans.forEach(function(l){ var m = /^L-(\d+)$/.exec(l.id); if(m && Number(m[1]) > max) max = Number(m[1]); });
+    return 'L-' + (max + 1);
+  }
+  function loanPreview(){
+    var P = Number(document.getElementById('nlAmount').value), n = Number(document.getElementById('nlTerm').value), r = Number(document.getElementById('nlRate').value);
+    var el = document.getElementById('nlPreview');
+    if(!(P > 0) || !(n >= 1) || isNaN(r) || r < 0){ el.innerHTML = '<span class="hint">輸入金額、年利率與期數後，這裡會顯示每期還款預覽。</span>'; return; }
+    var tmp = {amount: P, term: n, rate: r}, pmt = pmtOf(tmp), total = pmt * n, d = document.getElementById('nlDate').value || todayStr();
+    el.innerHTML = '<div class="kv-grid">' + kv('每期還款', fmtMoney(pmt)) + kv('總還款', fmtMoney(total)) + kv('總利息', fmtMoney(total - P)) + kv('首期到期日（預計）', addMonths(d, 1)) + '</div>';
+  }
+  function fillCustomerFromHkid(){
+    var hk = document.getElementById('nlHkid').value.replace(/[()\s]/g, '').toUpperCase(), c = findCustomer(hk);
+    var info = document.getElementById('nlCustInfo');
+    if(!c){ info.textContent = hk ? '新借款人，儲存時會建立還款人資料。' : ''; return; }
+    document.getElementById('nlName').value = c.name; document.getElementById('nlPhone').value = c.phone || ''; document.getElementById('nlEmail').value = c.email || '';
+    document.getElementById('nlAddress').value = c.address || ''; document.getElementById('nlJob').value = c.job || ''; document.getElementById('nlIncome').value = c.income || ''; if(c.collector) document.getElementById('nlCollector').value = c.collector;
+    info.textContent = '已帶入現有還款人資料（可修改，儲存時一併更新）。';
+  }
+  function openAddLoan(prefillHkid){
+    if(!can('addLoan')) return;
+    openModal('<h3>新增貸款資料</h3>' +
+      '<div class="caption" style="margin-top:0">一、還款人資料</div>' +
+      '<div class="form-row" style="grid-template-columns:1fr 1fr 1fr">' +
+        '<label><span class="k">香港身份證（必填）</span><input type="text" id="nlHkid" placeholder="A1234567 或 A123456(7)" autocomplete="off"></label>' +
+        '<label><span class="k">客戶姓名（必填）</span><input type="text" id="nlName" maxlength="40" autocomplete="off"></label>' +
+        '<label><span class="k">電話（8 位，必填）</span><input type="text" id="nlPhone" placeholder="91234567" autocomplete="off"></label>' +
+      '</div>' +
+      '<div class="form-row" style="grid-template-columns:1fr 2fr">' +
+        '<label><span class="k">電郵（通知用）</span><input type="text" id="nlEmail" placeholder="name@example.com" autocomplete="off"></label>' +
+        '<label><span class="k">地址</span><input type="text" id="nlAddress" maxlength="80" autocomplete="off"></label>' +
+      '</div>' +
+      '<div class="form-row" style="grid-template-columns:1fr 1fr 1fr">' +
+        '<label><span class="k">職業</span><input type="text" id="nlJob" maxlength="30" autocomplete="off"></label>' +
+        '<label><span class="k">月收入 HK$</span><input type="number" id="nlIncome" min="0" step="1"></label>' +
+        '<label><span class="k">負責業務（上門收款，必填）</span><select id="nlCollector">' + collectorOptionsHtml() + '</select></label>' +
+      '</div>' +
+      '<div class="hint" id="nlCustInfo" style="margin:-4px 0 8px"></div>' +
+      '<div class="caption">二、貸款條件</div>' +
+      '<div class="form-row" style="grid-template-columns:1fr 1fr 1fr 1fr">' +
+        '<label><span class="k">貸款類別</span><select id="nlType"><option>私人貸款</option><option>稅務貸款</option><option>分期貸款</option></select></label>' +
+        '<label><span class="k">貸款金額 HK$（必填）</span><input type="number" id="nlAmount" min="1" step="1"></label>' +
+        '<label><span class="k">年利率 %（必填）</span><input type="number" id="nlRate" min="0" max="48" step="0.1" value="24"></label>' +
+        '<label><span class="k">期數（1–60，必填）</span><input type="number" id="nlTerm" min="1" max="60" step="1"></label>' +
+      '</div>' +
+      '<div class="form-row" style="grid-template-columns:1fr 2fr">' +
+        '<label><span class="k">申請日期</span><input type="date" id="nlDate"></label>' +
+        '<label><span class="k">貸款用途</span><input type="text" id="nlPurpose" maxlength="60" autocomplete="off"></label>' +
+      '</div>' +
+      '<div id="nlPreview" style="margin-bottom:10px"></div>' +
+      '<div class="hint" style="margin:-4px 0 8px">還款方式：等額本息，按月還款。年利率上限 48% 為示範值，正式規則待法遵確認。</div>' +
+      '<div class="caption">三、文件核對</div>' +
+      '<label class="check-row" style="margin:2px 0"><input type="checkbox" id="nlDoc1"><span>已核對身份證正本（必填）</span></label>' +
+      '<label class="check-row" style="margin:2px 0"><input type="checkbox" id="nlDoc2"><span>已收住址證明</span></label>' +
+      '<label class="check-row" style="margin:2px 0"><input type="checkbox" id="nlDoc3"><span>已收入息證明</span></label>' +
+      '<label class="check-row" style="margin:2px 0"><input type="checkbox" id="nlDoc4"><span>借款人已簽署貸款協議</span></label>' +
+      '<div class="hint">新貸款狀態為「申請」，須由審核人員審核並提交審批主管批核，批核後才可放款。若身份證已列於警示名單或已有未結清貸款，儲存前會提示確認。</div>' +
+      '<div class="banner alert" id="nlErr" style="display:none;margin:10px 0 0"></div>' +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn" id="nlSaveBtn">儲存</button></div>');
+    document.getElementById('nlDate').value = todayStr();
+    ['nlAmount','nlRate','nlTerm','nlDate'].forEach(function(id){ document.getElementById(id).addEventListener('input', loanPreview); });
+    document.getElementById('nlHkid').addEventListener('change', fillCustomerFromHkid);
+    if(prefillHkid){ document.getElementById('nlHkid').value = prefillHkid; fillCustomerFromHkid(); }
+    loanPreview();
+    document.getElementById('nlSaveBtn').addEventListener('click', saveLoan);
+  }
+  function saveLoan(){
+    var err = document.getElementById('nlErr');
+    function fail(m){ err.textContent = m; err.style.display = ''; }
+    function val(id){ return document.getElementById(id).value; }
+    function clean(id){ return val(id).replace(/[<>&"']/g, '').trim(); }
+    var hkid = val('nlHkid').replace(/[()\s]/g, '').toUpperCase(), name = clean('nlName');
+    var phone = val('nlPhone').replace(/[^0-9]/g, ''), email = val('nlEmail').trim();
+    var amount = Number(val('nlAmount')), term = Number(val('nlTerm')), rate = Number(val('nlRate')), date = val('nlDate');
+    var income = val('nlIncome') === '' ? 0 : Number(val('nlIncome'));
+    if(!/^[A-Z]{1,2}[0-9]{6,7}$/.test(hkid)) return fail('身份證格式錯誤（例如 A1234567 或 A123456(7)）');
+    if(!name) return fail('請輸入客戶姓名');
+    if(phone.length !== 8) return fail('電話須為 8 位數字');
+    if(email && !/^[^@ ]+@[^@ ]+\.[^@ ]+$/.test(email)) return fail('電郵格式錯誤');
+    if(!(amount > 0) || Math.floor(amount) !== amount) return fail('貸款金額須為大於 0 的整數');
+    if(isNaN(rate) || rate < 0 || rate > 48) return fail('年利率須介於 0 至 48%（示範上限，待法遵確認）');
+    if(!(term >= 1 && term <= 60) || Math.floor(term) !== term) return fail('期數須為 1 至 60 的整數');
+    if(!date) return fail('請輸入申請日期');
+    if(isNaN(income) || income < 0) return fail('月收入須為 0 或以上的數字');
+    if(!val('nlCollector')) return fail('請選擇負責業務（負責上門收款的同事）');
+    var exC = findCustomer(hkid);
+    if(!document.getElementById('nlDoc1').checked) return fail('請先核對身份證正本並勾選');
+    var amlHit = state.aml.some(function(a){ return a.hkid === hkid; });
+    var active = state.loans.some(function(l){ return l.hkid === hkid && l.status !== '結清' && l.status !== '已拒絕'; });
+    function proceed(){
+    var c = findCustomer(hkid);
+    if(!c){ c = {hkid: hkid, name: name, nameEn: '', dob: '', gender: '', phone: '', email: '', address: '', job: '', income: 0}; state.customers.push(c); }
+    c.name = name; c.phone = phone; c.email = email; c.address = clean('nlAddress'); c.job = clean('nlJob'); c.income = income; c.collector = val('nlCollector');
+    var loan = {id: nextLoanId(), name: name, hkid: hkid, amount: amount, term: term, apply: date, status: '申請', rate: rate, type: val('nlType'), purpose: clean('nlPurpose'), paid: 0, start: date,
+      docs: {id: true, addr: document.getElementById('nlDoc2').checked, income: document.getElementById('nlDoc3').checked, agreement: document.getElementById('nlDoc4').checked}};
+    state.loans.push(loan);
+    log('新增貸款資料', loan.id + ' · ' + maskId(hkid) + ' · ' + fmtMoney(amount) + ' · ' + rate + '% · ' + term + ' 期' + (amlHit ? '（名單命中，已確認）' : ''));
+    document.getElementById('loanSearch').value = ''; document.getElementById('loanStatusFilter').value = '';
+    selectedCust = null; expandedLoan = loan.id; detailTab = '申請';
+    closeModal(); toast('已新增貸款 ' + loan.id + '，狀態：申請');
+    setView('loans'); renderAll();
+    }
+    function checkActive(){
+      if(active) askDialog({title: '已有未結清貸款', msg: '此借款人已有未結清的貸款，仍要再新增一筆嗎？', okLabel: '仍要新增', onOk: proceed});
+      else proceed();
+    }
+    if(amlHit) askDialog({title: '警示名單', msg: '此身份證已列於警示名單，仍要新增貸款資料嗎？', okLabel: '仍要新增', danger: true, onOk: checkActive});
+    else checkActive();
+  }
+  document.getElementById('loanAddBtn').addEventListener('click', function(){ openAddLoan(); });
+  document.getElementById('custAddLoanBtn').addEventListener('click', function(){ openAddLoan(); });
+
+  // ---------- 還款人資料 ----------
+  var selectedCust = null;
+  function custLoans(c){ return state.loans.filter(function(l){ return l.hkid === c.hkid; }); }
+  function custStats(c){
+    var out = 0, late = 0;
+    custLoans(c).forEach(function(l){ if(hasSchedule(l) && l.status !== '結清'){ var s = loanSummary(l); out += s.out; late += s.lateCount; } });
+    return {out: out, late: late};
+  }
+  function renderCustomers(){
+    var q = (document.getElementById('custSearch').value || '').trim().toUpperCase(), qd = q.replace(/[^0-9]/g, '');
+    var rows = state.customers.filter(function(c){
+      var mq = !q || c.name.toUpperCase().indexOf(q) > -1 || c.hkid.indexOf(q) > -1 || (qd && (c.phone || '').indexOf(qd) > -1) || (c.collector || '').toUpperCase().indexOf(q) > -1;
+      return mq && collectorMatch(c.collector, effFilter('custCollectorFilter'));
+    });
+    document.getElementById('custTableBody').innerHTML = rows.length ? rows.map(function(c){
+      var st = custStats(c);
+      return '<tr class="clickable" data-cust="' + c.hkid + '"><td>' + esc(c.name) + alertMark(c.hkid) + '</td><td>' + (can('seeUnmasked') ? c.hkid : maskId(c.hkid)) + '</td><td>' + esc(c.phone || '—') + '</td><td>' + esc(c.email || '—') + '</td><td>' + esc(c.collector || '未指派') + '</td>' +
+        '<td>' + custLoans(c).length + '</td><td>' + fmtMoney(st.out) + '</td><td>' + (st.late ? '<span class="pill bad">' + st.late + ' 期</span>' : '—') + '</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty-note">查無還款人資料</td></tr>';
+    renderCustDetail();
+  }
+  function renderCustDetail(){
+    var el = document.getElementById('custDetail');
+    var c = selectedCust && findCustomer(selectedCust);
+    if(!c){ hideDetailModal(el); return; }
+    var ls = custLoans(c);
+    var notes = state.notices.filter(function(n){ return n.hkid === c.hkid; });
+    var amlHit = state.aml.filter(function(a){ return a.hkid === c.hkid; })[0];
+    showDetailModal(el, '借款人 ' + esc(c.name), '<div class="detail">' +
+      (amlHit ? '<div class="banner alert"><span>⚠</span><div><span class="b-title">此借款人列於警示名單</span>' + esc(amlHit.code) + ' · ' + esc(amlHit.date) + ' — ' + esc(amlHit.content) + '</div></div>' : '') +
+      '<div class="caption" style="margin-top:0">個人資料 · ' + esc(c.name) + '</div>' +
+      '<div class="detail-fields">' + [['英文姓名', c.nameEn || '—'], ['身份證', can('seeUnmasked') ? c.hkid : maskId(c.hkid)], ['出生日期', c.dob || '—'], ['性別', c.gender || '—'], ['電話', c.phone || '—'], ['電郵', c.email || '—'], ['負責業務（上門收款）', c.collector || '未指派'], ['地址', c.address || '—'], ['職業', c.job || '—'], ['月收入', c.income ? fmtMoney(c.income) : '—']].map(function(f){
+        return '<div class="field"><div class="k">' + f[0] + '</div><div class="v">' + esc(f[1]) + '</div></div>'; }).join('') + '</div>' +
+      '<div class="detail-actions" style="margin-top:12px"><button class="btn" data-newloan="' + c.hkid + '">＋ 為此借款人新增貸款</button>' + (can('addNote') ? '<button class="btn ghost" data-alertcust="' + c.hkid + '">列為警示戶</button>' : '') +
+        (can('assignCollector') ? '<span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center"><span class="hint">負責業務</span><select class="inline" id="assignSel">' + collectorOptionsHtml().replace('value="' + esc(c.collector || '') + '"', 'value="' + esc(c.collector || '') + '" selected') + '</select><button class="btn ghost" data-assign="' + c.hkid + '">更改</button></span>' : '') +
+        (ls.some(function(l){ return hasSchedule(l) && l.status !== '結清'; }) ? '<button class="btn ghost" data-mailcust="' + c.hkid + '">發送提醒郵件</button>' : '') + '</div>' +
+      tabsHtml('cust', [['loan', '貸款與還款狀況'], ['notice', '通知紀錄（郵件）（' + notes.length + '）']], 'loan') +
+      tabPanel('cust', 'loan', 'loan', '<div class="table-wrap"><table><thead><tr><th>編號</th><th>類別</th><th>金額</th><th>期數</th><th>已收期數</th><th>忘繳期數</th><th>已收金額</th><th>尚欠</th><th>狀態</th><th></th></tr></thead><tbody>' +
+      (ls.length ? ls.map(function(l){
+        var s = hasSchedule(l) ? loanSummary(l) : null;
+        return '<tr><td>' + l.id + '</td><td>' + esc(l.type || '私人貸款') + '</td><td>' + fmtMoney(l.amount) + '</td><td>' + l.term + '</td><td>' + (s ? s.done + ' / ' + l.term : '—') + '</td>' +
+          '<td>' + (s && s.lateCount ? '<span class="pill bad">' + s.lateCount + ' 期</span>' : '—') + '</td><td>' + (s ? fmtMoney(s.received) : '—') + '</td><td>' + (s ? fmtMoney(s.out) : '—') + '</td>' +
+          '<td><span class="pill" data-status="' + l.status + '">' + l.status + '</span></td><td><button class="btn ghost" data-goloan="' + l.id + '">還款計劃</button></td></tr>';
+      }).join('') : '<tr><td colspan="10" class="empty-note">尚無貸款</td></tr>') + '</tbody></table></div>') +
+      tabPanel('cust', 'notice', 'loan', '<div class="table-wrap"><table><thead><tr><th>時間</th><th>貸款</th><th>類型</th><th>收件人</th><th>主旨</th><th>經辦</th></tr></thead><tbody>' +
+      (notes.length ? notes.map(function(n){ return '<tr><td>' + n.time + '</td><td>' + n.loan + '</td><td>' + n.kind + '</td><td>' + esc(n.to) + '</td><td class="wrap">' + esc(n.subject) + '</td><td>' + esc(n.by) + '</td></tr>'; }).join('') : '<tr><td colspan="6" class="empty-note">尚無通知紀錄</td></tr>') +
+      '</tbody></table></div>') + '</div>', closeCustDetail);
+  }
+  document.getElementById('custSearch').addEventListener('input', renderCustomers);
+  document.getElementById('custCollectorFilter').addEventListener('change', renderCustomers);
+  document.getElementById('custTableBody').addEventListener('click', function(e){
+    var tr = e.target.closest('tr[data-cust]'); if(!tr) return;
+    selectedCust = tr.dataset.cust; tabState.cust = 'loan';
+    renderCustDetail();
+  });
+  document.getElementById('custDetail').addEventListener('click', function(e){
+    var g = e.target.closest('[data-goloan]');
+    if(g){ selectedCust = null; renderCustDetail(); expandedLoan = g.dataset.goloan; detailTab = '還款計劃'; setView('loans'); renderLoans(); return; }
+    var n = e.target.closest('[data-newloan]'); if(n){ openAddLoan(n.dataset.newloan); return; }
+    var as = e.target.closest('[data-assign]');
+    if(as && can('assignCollector')){
+      var ac2 = findCustomer(as.dataset.assign), nv = document.getElementById('assignSel').value;
+      if((ac2.collector || '') === nv){ toast('負責業務沒有變更'); return; }
+      log('更改負責業務', maskId(ac2.hkid) + '：' + (ac2.collector || '未指派') + ' → ' + (nv || '未指派'));
+      ac2.collector = nv; toast('已更改負責業務'); renderAll(); return;
+    }
+    var al = e.target.closest('[data-alertcust]');
+    if(al){ var cu = findCustomer(al.dataset.alertcust); openAddAlert(cu.hkid, cu.name); return; }
+    var m = e.target.closest('[data-mailcust]');
+    if(m){
+      var c = findCustomer(m.dataset.mailcust);
+      var target = custLoans(c).filter(function(l){ return hasSchedule(l) && l.status !== '結清'; }).sort(function(a, b){ return (loanSummary(b).lateCount) - (loanSummary(a).lateCount); })[0];
+      if(target) openMail(target.id, loanSummary(target).lateCount ? '逾期通知' : '到期提醒');
+    }
+  });
+
+  // ---------- 郵件通知 ----------
+  function mailTemplate(l, c, kind){
+    var s = loanSummary(l), n = s.next, co = state.company.name;
+    var greet = (c ? c.name : l.name) + ' 先生／女士：\n\n';
+    var sign = '\n\n如已付款，請忽略此郵件；如有查詢，請聯絡我們' + (c && c.collector ? '（負責同事：' + c.collector + '）' : '') + '。\n' + co;
+    if(kind === '逾期通知'){
+      var lateRows = s.sched.filter(function(x){ return x.late; });
+      return {subject: '【逾期通知】貸款 ' + l.id + ' 有 ' + lateRows.length + ' 期未繳',
+        body: greet + '根據我們的紀錄，您的貸款 ' + l.id + '（' + fmtMoney(l.amount) + '，共 ' + l.term + ' 期）有以下期數尚未繳付：\n\n' +
+          lateRows.map(function(x){ return '第 ' + x.n + ' 期　到期日 ' + x.due + '　未收 ' + fmtMoney(x.left) + '（已逾期 ' + x.days + ' 天）'; }).join('\n') +
+          '\n\n合計未收 ' + fmtMoney(s.lateAmount) + '，請盡快安排繳付。' + sign};
+    }
+    if(kind === '結清確認'){
+      return {subject: '【結清確認】貸款 ' + l.id + ' 已全數清償', body: greet + '您的貸款 ' + l.id + ' 已全數清償，累計已收 ' + fmtMoney(s.received) + '。多謝您的支持。\n' + co};
+    }
+    if(kind === '收款確認'){
+      var lp = state.payments.filter(function(p){ return p.loan === l.id && p.status === '正常'; }).slice(-1)[0];
+      return {subject: '【收款確認】貸款 ' + l.id + (lp ? ' 已收到 ' + fmtMoney(lp.amount) : ''), body: greet + (lp ? '我們已於 ' + lp.date + ' 收到您的還款 ' + fmtMoney(lp.amount) + '（第 ' + lp.period + ' 期，收據 ' + lp.id + '）。' : '我們已收到您的還款。') + '\n目前已收 ' + s.done + ' / ' + l.term + ' 期，尚欠 ' + fmtMoney(s.out) + '。\n' + co};
+    }
+    return {subject: '【還款提醒】貸款 ' + l.id + (n ? ' 第 ' + n.n + ' 期將於 ' + n.due + ' 到期' : ''),
+      body: greet + (n ? '提醒您，貸款 ' + l.id + ' 第 ' + n.n + ' 期應還 ' + fmtMoney(n.left) + '，將於 ' + n.due + ' 到期，請準時繳付。' : '提醒您準時繳付貸款。') + '\n目前已收 ' + s.done + ' / ' + l.term + ' 期。' + sign};
+  }
+  function openMail(loanId, kind){
+    var l = state.loans.filter(function(x){ return x.id === loanId; })[0]; if(!l) return;
+    var c = findCustomer(l.hkid), t = mailTemplate(l, c, kind);
+    openModal('<h3>郵件通知 · ' + l.id + '</h3>' +
+      '<div class="form-row" style="grid-template-columns:1fr 1fr"><label><span class="k">通知類型</span><select id="mlKind"><option>到期提醒</option><option>逾期通知</option><option>收款確認</option><option>結清確認</option></select></label>' +
+      '<label><span class="k">收件人電郵（必填）</span><input type="text" id="mlTo" autocomplete="off"></label></div>' +
+      '<div class="form-row" style="grid-template-columns:1fr"><label><span class="k">主旨</span><input type="text" id="mlSubject"></label></div>' +
+      '<div class="form-row" style="grid-template-columns:1fr"><label><span class="k">內容</span><textarea id="mlBody" style="min-height:190px"></textarea></label></div>' +
+      '<div class="hint">示範版無法由瀏覽器直接寄信：按「開啟郵件程式並記錄」會用電腦的郵件程式開啟這封信，同時在系統留下通知紀錄。正式版由系統寄出，並處理退信。</div>' +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn" id="mlSendBtn">開啟郵件程式並記錄</button></div>');
+    document.getElementById('mlKind').value = kind;
+    document.getElementById('mlTo').value = c && c.email ? c.email : '';
+    document.getElementById('mlSubject').value = t.subject; document.getElementById('mlBody').value = t.body;
+    document.getElementById('mlKind').addEventListener('change', function(){
+      var nt = mailTemplate(l, c, this.value); document.getElementById('mlSubject').value = nt.subject; document.getElementById('mlBody').value = nt.body;
+    });
+    document.getElementById('mlSendBtn').addEventListener('click', function(){
+      var to = document.getElementById('mlTo').value.trim(), sub = document.getElementById('mlSubject').value.trim(), bd = document.getElementById('mlBody').value;
+      if(!/^[^@ ]+@[^@ ]+\.[^@ ]+$/.test(to)){ toast('請輸入正確的收件人電郵'); return; }
+      if(!sub){ toast('請輸入主旨'); return; }
+      var k = document.getElementById('mlKind').value;
+      state.notices.push({id: 'MAIL-' + String(state.notices.length + 1).padStart(3, '0'), time: stamp(), loan: l.id, hkid: l.hkid, name: l.name, to: to, subject: sub, kind: k, by: meName()});
+      log('發送郵件通知', l.id + ' · ' + k + ' → ' + to);
+      var a = document.createElement('a');
+      a.href = 'mailto:' + to + '?subject=' + encodeURIComponent(sub) + '&body=' + encodeURIComponent(bd);
+      document.body.appendChild(a); a.click(); a.remove();
+      closeModal(); toast('已記錄通知並開啟郵件程式'); renderAll();
+    });
+  }
+
+  // ---------- credit query ----------
+  var lastResult = null;   // {hkid, mode, rec, viewedOverdue, viewedSchedule}
+  var querying = false;
+  var txnSeq = 1;
+
+  function authActive(rec){ return !!(rec.auth && rec.auth.status === 'active' && rec.auth.expiry >= todayStr()); }
+  function unpaidDebts(rec){ return rec.debts.filter(function(d){ return d.status !== '結清'; }); }
+  function enqTotals(rec){
+    return rec.enq.reduce(function(s, e){ s.today += e.today; s.d15 += e.d15; s.d30 += e.d30; return s; }, {today:0, d15:0, d30:0});
+  }
+  // 同業查詢每次扣 10 分（30 日內）；分數 >=700 低、>=600 中、其餘高
+  function riskOf(rec){
+    var q = enqTotals(rec), pub = 0, activeBk = false;
+    (rec.bankrupt || []).forEach(function(b){ if(b.status === "已完成") pub += 50; else { pub += 150; activeBk = true; } });
+    (rec.court || []).forEach(function(c){ pub += c.status === "已結案" ? 20 : 60; });
+    var score = rec.risk.score - 10 * q.d30 - pub;
+    return {score: score, base: rec.risk.score, penalty: 10 * q.d30, pub: pub, level: (activeBk || score < 600) ? "高" : (score >= 700 ? "低" : "中"), q: q,
+      multi: rec.enq.filter(function(e){ return e.d30 > 0; }).length >= 3 || q.d15 >= 3};
+  }
+  function levelCls(l){ return l === '低' ? 'ok' : (l === '中' ? 'warn' : 'bad'); }
+
+  function updateCreditMeta(){
+    var te = document.getElementById('creditMode').value === 'te';
+    var c = state.company;
+    document.getElementById('creditMeta').innerHTML = te
+      ? '本次查詢費用 <b>' + fmtMoney(c.fee) + '</b> · 公司可用餘額 <b>' + fmtMoney(c.balance) + '</b> · 需客戶授權有效'
+      : '內部／外債查詢不需客戶授權，亦不扣減查詢額度。';
+    document.getElementById('creditConfirmRow').style.display = te ? '' : 'none';
+    document.getElementById('creditStrip').innerHTML = '儲值 <b>' + c.balance.toFixed(2) + '</b> · 贈送 <b>0.00</b> · <a href="#" data-strip="fees">收費紀錄</a> · <a href="#" data-strip="rules">使用守則</a>';
+  }
+  document.getElementById('creditStrip').addEventListener('click', function(e){
+    var a = e.target.closest('[data-strip]'); if(!a) return; e.preventDefault();
+    if(a.dataset.strip === 'fees'){
+      openModal('<h3>收費紀錄</h3><div class="table-wrap"><table><thead><tr><th>時間</th><th>類型</th><th>金額</th><th>交易編號</th></tr></thead><tbody>' +
+        state.txns.map(function(t){ return '<tr><td>' + t.time + '</td><td>' + t.type + '</td><td>' + (t.amount < 0 ? '-' : '+') + fmtMoney(Math.abs(t.amount)) + '</td><td>' + t.ref + '</td></tr>'; }).join('') +
+        '</tbody></table></div><div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+    } else {
+      openModal('<h3>使用守則</h3><ul class="plain">' + GUIDE.rules.map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ul><div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+    }
+  });
+  document.getElementById('creditTabs').addEventListener('click', function(e){
+    var b = e.target.closest('[data-ctab]'); if(!b) return;
+    document.querySelectorAll('#creditTabs button').forEach(function(x){ x.classList.toggle('active', x === b); });
+    var t = b.dataset.ctab, alt = document.getElementById('creditAlt');
+    document.getElementById('creditMain').style.display = t === 'te' ? '' : 'none';
+    alt.style.display = t === 'te' ? 'none' : '';
+    if(t === 'aml'){
+      alt.innerHTML = '<div class="table-wrap"><table><thead><tr><th>公司編號</th><th>日期</th><th>身份證</th><th>內容</th></tr></thead><tbody>' +
+        (state.aml.map(function(a){ return '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.date) + '</td><td>' + maskId(a.hkid) + '</td><td class="wrap">' + esc(a.content) + '</td></tr>'; }).join('') || '<tr><td colspan="4" class="empty-note">名單目前為空</td></tr>') + '</tbody></table></div>';
+    } else if(t !== 'te'){
+      renderPublicRecords(t);
+    }
+  });
+  // 破產記錄／法庭案件：公開記錄類資料，只給審核人員、審批主管，並寫入稽核
+  var PUBLIC_TABS = {
+    bankrupt: {title:'破產記錄', key:'bankrupt', head:['案件編號','法院','類型','日期','狀態','備註'], row:function(r){ return [r.no, r.court, r.kind, r.date, r.status, r.note || '—']; }},
+    court: {title:'法庭案件', key:'court', head:['案件編號','法院','案件類別','日期','涉及金額','狀態','備註'], row:function(r){ return [r.no, r.court, r.kind, r.date, fmtMoney(r.amount), r.status, r.note || '—']; }}
+  };
+  function renderPublicRecords(t){
+    var cfg = PUBLIC_TABS[t], alt = document.getElementById('creditAlt');
+    if(!can('seeDetail')){
+      alt.innerHTML = '<div class="empty-state">🔒 ' + cfg.title + '屬公開記錄查詢，只有「審核人員」或「審批主管」可查看。</div>'; return;
+    }
+    if(!lastResult || !lastResult.rec){
+      alt.innerHTML = '<div class="empty-state">請先在「TE 信貸資料」分頁完成客戶查詢，再回到這裡查看該客戶的' + cfg.title + '。</div>'; return;
+    }
+    var rec = lastResult.rec, rows = rec[cfg.key] || [];
+    log('查看' + cfg.title, maskId(lastResult.hkid));
+    alt.innerHTML = '<p class="meta-line">客戶：<b>' + esc(rec.nameZh) + '</b>（' + maskId(lastResult.hkid) + '）· 來源：公開記錄（示範資料，正式資料來源與操作方式待核准 #10）</p>' +
+      '<div class="table-wrap"><table><thead><tr>' + cfg.head.map(function(x){ return '<th>' + x + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      (rows.length ? rows.map(function(r){ return '<tr>' + cfg.row(r).map(function(v){ return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + cfg.head.length + '" class="empty-note">查無' + cfg.title + '</td></tr>') +
+      '</tbody></table></div><div class="hint">有記錄不代表直接拒絕；已計入風險分數（暫定：破產進行中 −150、已完成 −50；法庭案件審理中 −60、已結案 −20，破產進行中一律列為高風險，規則待核准 #7）。請連同信貸摘要、逾期與還款明細一併判斷，並依正式審批政策處理。</div>';
+  }
+  document.getElementById('creditMode').addEventListener('change', updateCreditMeta);
+
+  document.querySelectorAll('.sample-chip').forEach(function(b){
+    b.addEventListener('click', function(){ document.getElementById('creditHkid').value = b.dataset.sample; });
+  });
+
+  document.getElementById('creditClearBtn').addEventListener('click', function(){
+    lastResult = null;
+    document.getElementById('creditResult').innerHTML = '';
+    document.getElementById('creditHkid').value = '';
+    document.getElementById('creditConfirm').checked = false;
+  });
+
+  function showCreditError(title, msg){
+    document.getElementById('creditResult').innerHTML =
+      '<div class="banner alert"><span>⚠</span><div><span class="b-title">' + title + '</span>' + msg + '</div></div>';
+  }
+
+  document.getElementById('creditQueryBtn').addEventListener('click', function(){
+    if(querying) return;
+    var hkid = document.getElementById('creditHkid').value.replace(/[()\s]/g, '').toUpperCase();
+    var mode = document.getElementById('creditMode').value;
+    lastResult = null;
+    if(!hkid){ showCreditError('請先輸入身份證', '請輸入完整的香港身份證號碼。'); return; }
+    if(!/^[A-Z]{1,2}\d{6,7}$/.test(hkid)){
+      showCreditError('身份證格式錯誤', '請修正輸入（例如 A1234567），不要略過驗證，也不要以不同號碼嘗試配對客戶。'); return;
+    }
+    var rec = state.creditDb[hkid];
+
+    if(mode === 'te'){
+      if(!document.getElementById('creditConfirm').checked){
+        showCreditError('尚未確認查詢前事項', '請先勾選查詢前確認：對象正確、授權有效、符合業務目的及費用已說明。'); return;
+      }
+      if(!rec){
+        log('TE 信貸查詢', maskId(hkid) + '：找不到客戶（未扣款）');
+        document.getElementById('creditResult').innerHTML = '<div class="banner warn"><span>ℹ</span><div><span class="b-title">找不到客戶</span>請確認證件資料及公司範圍；必要時交由主管處理。本次未扣款。</div></div>';
+        return;
+      }
+      if(!authActive(rec)){ renderAuthPanel(hkid); return; }
+      if(state.company.balance < state.company.fee){
+        showCreditError('餘額不足', '公司查詢額度不足（餘額 ' + fmtMoney(state.company.balance) + '，費用 ' + fmtMoney(state.company.fee) + '）。請通知公司管理員，不要重複按查詢。'); return;
+      }
+      if(!state.services[0].up){
+        log('TE 信貸查詢', maskId(hkid) + '：服務逾時（未扣款）');
+        showCreditError('服務逾時', '記錄時間：' + stamp() + '。請先向公司管理員查詢交易狀態，確認未建立交易後再決定是否重試，避免重複扣款。'); return;
+      }
+    }
+
+    querying = true;
+    var btn = document.getElementById('creditQueryBtn');
+    btn.disabled = true;
+    document.getElementById('creditResult').innerHTML = '<div class="empty-state">查詢中…請勿重複按下</div>';
+    setTimeout(function(){
+      querying = false; btn.disabled = false;
+      if(mode === 'te'){
+        state.company.balance -= state.company.fee;
+        state.txns.unshift({time: stamp(), type:'查詢扣款', amount: -state.company.fee, ref:'TXN-' + String(++txnSeq).padStart(4,'0')});
+      }
+      log(mode === 'te' ? 'TE 信貸查詢' : '內部／外債查詢', maskId(hkid) + (mode === 'te' ? '，扣款 ' + fmtMoney(state.company.fee) : ''));
+      lastResult = {hkid: hkid, mode: mode, rec: rec, viewedOverdue: false, viewedSchedule: false};
+      renderCreditResult();
+      updateCreditMeta();
+      renderDashboard();
+    }, 500);
+  });
+
+  // ---- authorization ----
+  function renderAuthPanel(hkid){
+    var rec = state.creditDb[hkid];
+    var why = rec.auth && rec.auth.status === 'expired' ? '授權已於 ' + rec.auth.expiry + ' 過期' : '尚未取得客戶授權';
+    document.getElementById('creditResult').innerHTML =
+      '<div class="banner warn"><span>⚠</span><div><span class="b-title">需重新確認授權</span>' + why + '。請先完成重新授權，不得要求系統繞過授權。</div></div>' +
+      '<div class="detail-actions">' +
+        '<button class="btn ghost" data-auth="print">列印授權書</button>' +
+        '<button class="btn ghost" data-auth="qr">TE Plus 上傳</button>' +
+      '</div>';
+    document.querySelectorAll('#creditResult [data-auth]').forEach(function(b){
+      b.addEventListener('click', function(){ openAuthModal(hkid, b.dataset.auth); });
+    });
+  }
+
+  function qrCells(seed){
+    var h = 0, out = '';
+    for(var i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+    for(var n = 0; n < 121; n++){
+      h = (h * 1103515245 + 12345) >>> 0;
+      var corner = (n % 11 < 3 || n % 11 > 7) && (Math.floor(n / 11) < 3 || Math.floor(n / 11) > 7);
+      out += '<i class="' + ((corner || (h >> 16) % 2) ? '' : 'o') + '"></i>';
+    }
+    return out;
+  }
+
+  function openAuthModal(hkid, kind){
+    var body = kind === 'print'
+      ? '<p>已產生授權書（示範）。請交由客戶簽署，並確認授權書提供給正確客戶。</p>'
+      : '<p>請客戶以 TE Plus 掃描二維碼完成授權。二維碼過期或已使用時需重新啟動流程。</p><div class="qr">' + qrCells(hkid + Date.now()) + '</div>';
+    openModal('<h3>' + (kind === 'print' ? '列印授權書' : 'TE Plus 上傳授權') + '</h3>' + body +
+      '<div class="modal-foot"><button class="btn ghost" data-close>關閉</button><button class="btn" id="authDoneBtn">模擬客戶完成授權</button></div>');
+    document.getElementById('authDoneBtn').addEventListener('click', function(){
+      if(kind === 'qr' && !state.services[1].up){
+        toast('TE Plus 服務暫時不可用，請稍後重新啟動授權流程'); log('授權失敗', maskId(hkid) + '：TE Plus 服務不可用'); return;
+      }
+      var expiry = addMonths(todayStr(), 3);
+      state.creditDb[hkid].auth = {status:'active', expiry: expiry};
+      log('客戶授權', maskId(hkid) + '，有效至 ' + expiry + '（' + (kind === 'print' ? '授權書' : 'TE Plus') + '）');
+      closeModal();
+      document.getElementById('creditResult').innerHTML =
+        '<div class="banner ok"><span>✓</span><div><span class="b-title">授權訊息生效中</span>有效期至 ' + expiry + '。請確認費用提示後再按「開始查詢」。</div></div>';
+    });
+  }
+
+  // ---- result ----
+  function renderCreditResult(){
+    var r = lastResult; if(!r) return;
+    var rec = r.rec, hkid = r.hkid, te = r.mode === 'te';
+    var amlHit = state.aml.find(function(a){ return a.hkid === hkid; });
+    var html = '<div class="verify-badge">✓ 身份證格式驗證成功</div>';
+
+    if(amlHit){
+      html += '<div class="banner alert"><span>⚠</span><div><span class="b-title">此身份證已列於警示名單</span>' + esc(amlHit.code) + ' · ' + esc(amlHit.date) + ' — ' + esc(amlHit.content) + '</div></div>';
+    } else {
+      html += '<div class="banner ok"><span>✓</span><div><span class="b-title">未列於警示名單</span>可繼續一般審核流程</div></div>';
+    }
+
+    var notes = state.aml.filter(function(a){ return a.hkid === hkid; });
+    html += '<div class="caption">客戶注意事項</div><div class="table-wrap"><table><thead><tr><th>公司編號</th><th>日期</th><th>內容</th></tr></thead><tbody>' +
+      (notes.map(function(a){ return '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.date) + '</td><td class="wrap">' + esc(a.content) + '</td></tr>'; }).join('') || '<tr><td colspan="3" class="empty-note">&lt;No data to display&gt;</td></tr>') +
+      '</tbody></table></div><div class="detail-actions" style="margin-top:8px"><button class="btn ghost" id="btnAddNote"' + (can('addNote') ? '' : ' disabled') + '>新增客戶注意事項</button>' + (can('addNote') ? '' : '<span class="hint">名單新增需審核人員或審批主管角色</span>') + '</div>';
+
+    if(!rec){
+      html += '<div class="empty-state">查無此身份證的資料。不要以相似身份證或姓名反覆嘗試配對客戶。</div>';
+      document.getElementById('creditResult').innerHTML = html;
+      return;
+    }
+
+    html += '<div class="detail-fields" style="margin-bottom:6px;">' +
+      '<div class="field"><div class="k">中文名稱</div><div class="v">' + esc(rec.nameZh) + '</div></div>' +
+      '<div class="field"><div class="k">英文名稱</div><div class="v">' + esc(rec.nameEn) + '</div></div>' +
+      '<div class="field"><div class="k">身份證（遮罩）</div><div class="v">' + maskId(hkid) + '</div></div>' +
+      '<div class="field"><div class="k">出生日期</div><div class="v">' + rec.dob + '</div></div>' +
+      '<div class="field"><div class="k">性別</div><div class="v">' + rec.gender + '</div></div>' +
+      '<div class="field"><div class="k">資料更新時間</div><div class="v">' + todayStr() + ' 08:00</div></div>' +
+    '</div>';
+
+    var unpaid = unpaidDebts(rec);
+    var totalUnpaid = unpaid.reduce(function(s, d){ return s + d.amount; }, 0);
+
+    if(te){
+      var rk = rec.risk, rs = riskOf(rec), st = statsOf(rec, unpaid);
+      html += '<div class="caption">授權與風險摘要 · 來源：TE（示範）</div>' +
+        '<p class="meta-line">授權狀態：<span class="pill ok">授權訊息生效中</span> 有效至 <b>' + rec.auth.expiry + '</b> · 風險分數僅作輔助，不取代正式審批政策</p>' +
+        '<div class="risk-row"><div class="risk-score"><div class="n">' + rs.score + '</div><div class="l">風險分數 · <span class="pill ' + levelCls(rs.level) + '">' + rs.level + '風險</span></div><div class="hint">基礎 ' + rs.base + ' − 同業查詢 ' + rs.penalty + ' − 公開記錄 ' + rs.pub + '</div></div>' +
+        '<div class="kv-grid">' +
+          kv('申請', st.apps) + kv('未處理', st.pending) + kv('拒絕', st.rejected) + kv('客戶取消', st.cancel) +
+          kv('成功放款(成功率)', st.funded + ' (' + st.rate + ')') + kv('上傳率', rk.upload + ' <span class="hint">截至 ' + todayStr() + '</span>') +
+        '</div></div>' +
+        '<div class="kv-grid" style="margin-bottom:14px">' +
+          kv('未償還個數', unpaid.length) + kv('尚欠本息', fmtMoney(totalUnpaid)) + kv('曾撤帳(撤帳率)', rk.bad === '無' ? '0 (0.0%)' : rk.bad) +
+          kv('撤帳總額', fmtMoney(0)) + kv('逾期中 / 提交逾期次數', st.overdueNow + ' / ' + st.overdueTimes) + kv('曾逾期還款期數', st.overduePeriods) +
+          kv('逾期金額', fmtMoney(rk.overdueAmt)) + kv('拖欠舉報次數', 0) +
+          kv('最近被查詢次數', rs.q.today + ' ／ ' + rs.q.d15 + ' ／ ' + rs.q.d30 + ' <button class="btn ghost" id="btnEnq" style="padding:1px 8px;font-size:12px">詳細</button><div class="hint">今天／15日內／30日內</div>') +
+        '</div>' +
+        (rs.multi ? '<div class="banner warn"><span>⚠</span><div><span class="b-title">短期內多家機構查詢</span>屬需進一步核對的風險訊號，已計入風險分數；不應直接視為拒絕理由。</div></div>' : '') +
+        (rs.pub ? '<div class="banner warn"><span>⚠</span><div><span class="b-title">有破產記錄或法庭案件</span>已計入風險分數（扣 ' + rs.pub + ' 分）；請到「破產記錄」「法庭案件」分頁核對，有記錄不代表直接拒絕。</div></div>' : '');
+      var perm = can('seeDetail');
+      html += '<div class="detail-actions">' +
+        '<button class="btn ghost" id="btnOverdue"' + (perm ? '' : ' disabled') + '>查看近期逾期詳情</button>' +
+        '<button class="btn ghost" id="btnSchedule"' + (perm ? '' : ' disabled') + '>查看完整還款表</button>' +
+        '<button class="btn" id="btnAddCase"' + (can('addCase') ? '' : ' disabled') + '>加入審批</button>' +
+      '</div>' +
+      (perm ? '<div class="hint">加入審批前，請先查看近期逾期詳情及完整還款表。</div>'
+            : '<div class="hint">🔒 完整逾期、還款明細及加入審批需「審核人員」角色。</div>');
+    } else {
+      html += '<div class="caption">外債摘要</div><div class="kv-grid" style="margin-bottom:6px">' +
+        kv('未結清貸款', unpaid.length + ' 筆') + kv('貸款總額（未結清）', fmtMoney(totalUnpaid)) + kv('資料同步時間', todayStr() + ' 08:00') + kv('最近被查詢次數', riskOf(rec).q.today + ' ／ ' + riskOf(rec).q.d15 + ' ／ ' + riskOf(rec).q.d30 + ' <button class="btn ghost" id="btnEnq" style="padding:1px 8px;font-size:12px">詳細</button>') + '</div>';
+    }
+
+    var queries = rec.queries.concat([{code:'FIN-000', name:'本公司(本次查詢)', date: todayStr(), time: nowTime()}]);
+    html += '<div class="caption">查詢紀錄</div><div class="table-wrap"><table><thead><tr><th>公司編號</th><th>公司名稱</th><th>查詢日期</th><th>查詢時間</th></tr></thead><tbody>' +
+      queries.map(function(q){ return '<tr><td>' + q.code + '</td><td>' + q.name + '</td><td>' + q.date + '</td><td>' + q.time + '</td></tr>'; }).join('') +
+      '</tbody></table></div>';
+
+    html += '<div class="caption">外債資料</div>';
+    if(rec.debts.length){
+      html += '<div class="table-wrap"><table><thead><tr><th>公司編號</th><th>公司名稱</th><th>類別</th><th>貸款金額</th><th>貸款日期</th><th>期數</th><th>狀態</th></tr></thead><tbody>' +
+        rec.debts.map(function(d){ return '<tr><td>' + d.code + '</td><td>' + d.name + '</td><td>' + d.type + '</td><td>' + fmtMoney(d.amount) + '</td><td>' + d.date + '</td><td>' + d.term + ' 期</td><td><span class="pill" data-status="' + d.status + '">' + d.status + '</span></td></tr>'; }).join('') +
+        '<tr><td colspan="3"><b>合計</b></td><td><b>' + fmtMoney(rec.debts.reduce(function(s, d){ return s + d.amount; }, 0)) + '</b></td><td colspan="3"></td></tr></tbody></table></div>';
+    } else {
+      html += '<div class="empty-state">無外債紀錄</div>';
+    }
+
+    if(te){
+      html += '<div class="caption">資料分析</div><div class="radio-row">' +
+        '<label><input type="radio" name="ana" value="trend" checked> 貸款走勢圖</label>' +
+        '<label><input type="radio" name="ana" value="data"> 貸款數據</label>' +
+        '<label><input type="radio" name="ana" value="card"> 信用卡數據</label></div><div id="anaBody">' + analysisHtml('trend', rec) + '</div>';
+    }
+    document.getElementById('creditResult').innerHTML = html;
+    document.getElementById('btnEnq').addEventListener('click', showEnq);
+    document.getElementById('btnAddNote').addEventListener('click', openAddNote);
+    var bo = document.getElementById('btnOverdue');
+    if(bo){
+      bo.addEventListener('click', showOverdue);
+      document.getElementById('btnSchedule').addEventListener('click', function(){ showSchedule(0); });
+      document.getElementById('btnAddCase').addEventListener('click', openAddCase);
+    }
+  }
+  function outstandingAt(rec, date){
+    return rec.debts.reduce(function(sum, d){
+      if(date < d.date) return sum;
+      var paid = 0;
+      for(var i = 1; i <= d.term; i++){ if(addMonths(d.date, i) <= date) paid++; }
+      return sum + d.amount * (d.term - paid) / d.term;
+    }, 0);
+  }
+
+  function analysisHtml(kind, rec){
+    if(kind === 'card') return '<div class="empty-state">信用卡數據暫無資料（介接範圍待核准）。</div>';
+    if(kind === 'data'){
+      var by = {};
+      rec.debts.forEach(function(d){ var k = d.status; by[k] = by[k] || {n: 0, amt: 0}; by[k].n++; by[k].amt += d.amount; });
+      var ks = Object.keys(by);
+      return ks.length ? '<div class="table-wrap"><table><thead><tr><th>狀態</th><th>筆數</th><th>貸款金額合計</th></tr></thead><tbody>' +
+        ks.map(function(k){ return '<tr><td><span class="pill" data-status="' + k + '">' + k + '</span></td><td>' + by[k].n + '</td><td>' + fmtMoney(by[k].amt) + '</td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<div class="empty-state">無貸款數據</div>';
+    }
+    var pts = [], i, W = 600, H = 180, L = 46, R = 12, T = 12, B = 26;
+    for(i = -11; i <= 0; i++){ var dt = addMonths(todayStr(), i); pts.push({label: dt.slice(0, 7), v: Math.round(outstandingAt(rec, dt))}); }
+    var max = Math.max.apply(null, pts.map(function(p){ return p.v; })) || 1;
+    var x = function(k){ return L + k * (W - L - R) / (pts.length - 1); };
+    var y = function(v){ return T + (H - T - B) * (1 - v / max); };
+    var line = pts.map(function(p, k){ return x(k).toFixed(1) + ',' + y(p.v).toFixed(1); }).join(' ');
+    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="未償還貸款餘額走勢">' +
+      [0, 0.5, 1].map(function(f){ var gy = y(max * f); return '<line class="gd" x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '"/><text x="' + (L - 6) + '" y="' + (gy + 3) + '" text-anchor="end">' + Math.round(max * f / 1000) + 'k</text>'; }).join('') +
+      '<polygon class="ar" points="' + L + ',' + y(0) + ' ' + line + ' ' + x(pts.length - 1) + ',' + y(0) + '"/><polyline class="ln" points="' + line + '"/>' +
+      pts.map(function(p, k){ return (k % 2 === 0 ? '<text x="' + x(k) + '" y="' + (H - 8) + '" text-anchor="middle">' + p.label.slice(2) + '</text>' : '') + '<circle cx="' + x(k) + '" cy="' + y(p.v) + '" r="2.5" fill="var(--accent)"><title>' + p.label + '：' + fmtMoney(p.v) + '</title></circle>'; }).join('') +
+      '</svg>';
+    return svg + '<div class="hint">近 12 個月未償還貸款餘額（依還款期數推算，示範）。</div>';
+  }
+  document.getElementById('creditResult').addEventListener('change', function(e){
+    var r = e.target.closest('[name=ana]'); if(!r || !lastResult) return;
+    document.getElementById('anaBody').innerHTML = analysisHtml(r.value, lastResult.rec);
+  });
+
+  function statsOf(rec, unpaid){
+    var funded = rec.debts.length, apps = rec.risk.apps, od = 0;
+    rec.debts.forEach(function(d){ buildSchedule(d).forEach(function(s){ if(s.st === '逾期') od++; }); });
+    return {apps: apps, pending: 0, rejected: Math.max(0, apps - funded), cancel: 0, funded: funded,
+      rate: apps ? (funded / apps * 100).toFixed(1) + '%' : '0.0%', overdueNow: od, overdueTimes: od, overduePeriods: od};
+  }
+
+  function showEnq(){
+    var r = lastResult; if(!r) return;
+    var q = enqTotals(r.rec), n15 = 0, n30 = 0, n0 = 0;
+    r.rec.enq.forEach(function(e){ if(e.today) n0++; if(e.d15) n15++; if(e.d30) n30++; });
+    log('查看最近被查詢次數', maskId(r.hkid));
+    openModal('<h3>' + maskId(r.hkid) + ' 最近被查詢次數</h3><div class="table-wrap"><table><thead><tr><th></th><th>今天</th><th>15日內</th><th>30日內</th></tr></thead><tbody>' +
+      '<tr><td><b>總數</b></td><td>' + q.today + ' (' + n0 + '間)</td><td>' + q.d15 + ' (' + n15 + '間)</td><td>' + q.d30 + ' (' + n30 + '間)</td></tr>' +
+      r.rec.enq.map(function(e){ return '<tr><td>' + esc(e.name) + '</td><td>' + e.today + '</td><td>' + e.d15 + '</td><td>' + e.d30 + '</td></tr>'; }).join('') +
+      '</tbody></table></div><div class="hint">查詢次數已計入風險分數（30 日內每次 −10 分）。</div><div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+  }
+
+  function openAddNote(){
+    var r = lastResult; if(!r || !can('addNote')) return;
+    openModal('<h3>新增客戶注意事項</h3><p>身份證：' + maskId(r.hkid) + '</p><textarea id="noteText" placeholder="說明列入原因…"></textarea>' +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn" id="noteSaveBtn">儲存</button></div>');
+    document.getElementById('noteSaveBtn').addEventListener('click', function(){
+      var t = document.getElementById('noteText').value.trim(); if(!t){ toast('請填寫內容'); return; }
+      state.aml.push({code:'本公司', date: todayStr(), hkid: r.hkid, content: t});
+      log('新增客戶注意事項', maskId(r.hkid)); closeModal(); toast('已新增'); renderAll(); renderCreditResult();
+    });
+  }
+
+  function kv(k, v){ return '<div class="kv"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>'; }
+
+  function showOverdue(){
+    var r = lastResult; if(!r || !can('seeDetail')) return;
+    r.viewedOverdue = true;
+    log('查看近期逾期詳情', maskId(r.hkid));
+    var rk = r.rec.risk;
+    openModal('<h3>近期逾期詳情</h3>' +
+      '<div class="kv-grid" style="margin-bottom:12px">' + kv('曾轉逾期貸款總數', rk.overdueCount + ' 筆') + kv('逾期金額', fmtMoney(rk.overdueAmt)) + '</div>' +
+      '<div class="caption">同業查詢次數（財務機構）</div>' +
+      '<div class="table-wrap"><table><thead><tr><th>財務機構</th><th>今天</th><th>15 日內</th><th>30 日內</th></tr></thead><tbody>' +
+      (r.rec.enq.length ? r.rec.enq.map(function(e){ return '<tr><td>' + e.name + '</td><td>' + e.today + '</td><td>' + e.d15 + '</td><td>' + e.d30 + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="empty-note">無同業查詢紀錄</td></tr>') +
+      '</tbody></table></div>' +
+      '<div class="hint">短期內多家機構查詢屬需要進一步核對的風險訊號，不應直接視為拒絕理由。逾期金額為零也不代表沒有風險。</div>' +
+      '<div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+  }
+
+  function buildSchedule(d){
+    var rows = [], per = Math.round(d.amount / d.term), t = todayStr();
+    for(var i = 1; i <= d.term; i++){
+      var due = addMonths(d.date, i), st, ad = '—', aa = '—';
+      if(d.status === '結清' || due <= t){
+        st = (d.override && d.override[i]) || '準時';
+        if(st === '準時'){ ad = due; aa = fmtMoney(per); }
+        else if(st === '部分付款'){ ad = due; aa = fmtMoney(Math.round(per / 2)); }
+      } else { st = '待付款'; }
+      rows.push({n: i, due: due, amt: per, ad: ad, aa: aa, st: st});
+    }
+    return rows;
+  }
+
+  function buildHistory(d){
+    var rows = [], t = todayStr();
+    ['申請','批核','放款'].forEach(function(s){ rows.push({date: d.date, st: s, per: '', amt: fmtMoney(d.amount)}); });
+    var sched = buildSchedule(d);
+    sched.forEach(function(s){
+      if(s.st === '逾期'){
+        var days = Math.max(1, Math.round((new Date(t) - new Date(s.due)) / 864e5));
+        rows.push({date: s.due, st: '逾期還款 (' + days + '日)', per: s.n + '/' + d.term, amt: '(尚欠) ' + fmtMoney(s.amt)});
+      } else if(s.st === '準時' || s.st === '部分付款'){
+        rows.push({date: s.ad, st: s.st === '準時' ? '準時還款' : '部分付款', per: s.n + '/' + d.term, amt: '(尚欠) ' + fmtMoney(s.st === '準時' ? 0 : Math.round(s.amt / 2))});
+      }
+    });
+    if(d.status === '結清') rows.push({date: sched[sched.length - 1].due, st: '完成', per: '', amt: ''});
+    return rows.reverse();
+  }
+
+  function showSchedule(idx){
+    var r = lastResult; if(!r || !can('seeDetail')) return;
+    r.viewedSchedule = true;
+    if(!r.scheduleLogged){ log('查看完整還款表', maskId(r.hkid)); r.scheduleLogged = true; }
+    var debts = r.rec.debts;
+    if(!debts.length){
+      openModal('<h3>完整還款表</h3><div class="empty-state">此客戶沒有貸款紀錄</div><div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+      return;
+    }
+    var d = debts[idx];
+    openModal('<h3>完整還款表</h3>' +
+      '<div class="form-row" style="grid-template-columns:1fr"><label><span class="k">貸款機構</span><select id="schedSel">' +
+      debts.map(function(x, i){ return '<option value="' + i + '"' + (i === idx ? ' selected' : '') + '>' + x.name + ' · ' + fmtMoney(x.amount) + ' · ' + x.status + '</option>'; }).join('') +
+      '</select></label></div>' +
+      '<div class="table-wrap"><table><thead><tr><th>期數</th><th>到期日</th><th>應還金額</th><th>實際還款日</th><th>實際還款金額</th><th>狀態</th></tr></thead><tbody>' +
+      buildSchedule(d).map(function(s){ return '<tr><td>' + s.n + '</td><td>' + s.due + '</td><td>' + fmtMoney(s.amt) + '</td><td>' + s.ad + '</td><td>' + s.aa + '</td><td><span class="pill ' + statusCls(s.st) + '">' + s.st + '</span></td></tr>'; }).join('') +
+      '</tbody></table></div>' +
+      '<div class="caption">上傳記錄</div><div class="table-wrap"><table><thead><tr><th>日期</th><th>狀態</th><th>動作</th><th>期數</th><th>金額</th></tr></thead><tbody>' +
+      buildHistory(d).map(function(x){ return '<tr><td>' + x.date + '</td><td>' + x.st + '</td><td>新增</td><td>' + x.per + '</td><td>' + x.amt + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="hint">若發現逾期，請回到「近期逾期詳情」確認是否存在相關同業查詢或其他風險訊號。</div>' +
+      '<div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+    document.getElementById('schedSel').addEventListener('change', function(){ showSchedule(Number(this.value)); });
+  }
+
+  function openAddCase(){
+    var r = lastResult; if(!r || !can('addCase')) return;
+    if(!r.viewedOverdue || !r.viewedSchedule){ toast('請先查看近期逾期詳情及完整還款表，再加入審批'); return; }
+    if(state.cases.some(function(c){ return c.hkid === r.hkid && c.status !== '已核准' && c.status !== '已拒絕'; })){
+      toast('此客戶已有進行中的審批案件'); return;
+    }
+    var rk = riskOf(r.rec);
+    openModal('<h3>加入審批</h3>' +
+      '<p>客戶：' + esc(r.rec.nameZh) + '（' + maskId(r.hkid) + '）· 風險分數 ' + rk.score + '（' + rk.level + '風險）</p>' +
+      '<div class="form-row" style="grid-template-columns:1fr"><label><span class="k">案件備註 · 風險重點 · 待補資料</span><textarea id="caseNote" placeholder="例如：近 30 日多家機構查詢，需補收入證明…"></textarea></label></div>' +
+      '<div class="form-row" style="grid-template-columns:1fr"><label><span class="k">初始狀態</span><select id="caseStatus"><option>待處理</option><option>審閱中</option><option>待補資料</option></select></label></div>' +
+      '<div class="hint">案件編號將由系統產生。建立後會接著提交審批主管；核准或拒絕只能由審批主管決定。</div>' +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn" id="caseSaveBtn">建立案件</button></div>');
+    document.getElementById('caseSaveBtn').addEventListener('click', function(){
+      if(!document.getElementById('caseNote').value.trim()){ toast('請先填寫案件備註（風險重點與待補資料）'); return; }
+      var id = 'CASE-' + new Date().getFullYear() + '-' + String(state.cases.length + 1).padStart(3, '0');
+      state.cases.push({id: id, hkid: r.hkid, name: r.rec.nameZh, level: rk.level, note: document.getElementById('caseNote').value.trim(), status: document.getElementById('caseStatus').value, by: ME[role], assignees: [], mode: 'any', approvals: []});
+      log('加入審批', id + ' · ' + maskId(r.hkid));
+      closeModal(); toast('已建立案件 ' + id); renderAll(); openSubmitCase(state.cases.length - 1);
+    });
+  }
+
+  // ---------- approvals ----------
+  var CASE_EDIT = ['待處理','審閱中','待補資料'];
+  function meName(){ return ME[role]; }
+  function supervisors(){ return state.users.filter(function(u){ return u.role === 'supervisor' && u.active && !u.pending; }); }
+  function decided(item, name){ return (item.approvals || []).some(function(a){ return a.name === name; }); }
+  function canDecide(kind, item){
+    if(role !== 'supervisor' || item.status !== '待主管核准') return false;
+    var me = meName();
+    if(item.by === me || decided(item, me)) return false;
+    if(kind === 'case') return item.assignees.indexOf(me) > -1;
+    return true;
+  }
+  function pendingForMe(){
+    var n = 0;
+    state.cases.forEach(function(c){ if(canDecide('case', c)) n++; });
+    state.exports.forEach(function(x){ if(canDecide('exp', x)) n++; });
+    state.corrections.forEach(function(x){ if(canDecide('cor', x)) n++; });
+    return n;
+  }
+  function progressText(item, need){
+    var ok = (item.approvals || []).filter(function(a){ return a.decision === '核准'; }).length;
+    return '已核准 ' + ok + ' / ' + need + (item.approvals && item.approvals.length ? '<div class="hint">' + item.approvals.map(function(a){ return '<span title="' + esc(a.comment) + '">' + esc(a.name) + '：' + a.decision + '</span>'; }).join('；') + '</div>' : '');
+  }
+  function statusPill(s){
+    var cls = s === '已核准' ? 'ok' : (s === '已拒絕' || s === '已撤銷' ? 'bad' : (s === '待主管核准' || s === '更正申請中' ? 'warn' : ''));
+    return '<span class="pill ' + cls + '">' + s + '</span>';
+  }
+
+  function renderCases(){
+    var isSup = role === 'supervisor';
+    var mine = state.cases.filter(function(c){ return c.by === meName(); });
+    var open = isSup ? pendingForMe() : mine.filter(function(c){ return c.status === '待主管核准'; }).length;
+    document.getElementById('navApprovalsLabel').textContent = isSup ? '審批清單' : '已送審清單';
+    document.getElementById('caseTitle').textContent = isSup ? '審批清單 · 案件' : '已送審清單 · 我的案件';
+    var badge = document.getElementById('caseBadge');
+    badge.textContent = open; badge.style.display = open ? '' : 'none';
+    document.getElementById('caseIntro').textContent = isSup
+      ? '列出已提交審批主管的貸款申請案件。你被指派的案件可核准、拒絕或退回（備註必填）；不可核准自己建立的案件。核准後貸款轉為「批核」，可放款；拒絕則貸款為「已拒絕」。'
+      : '列出你建立的案件；「待主管核准」表示審批主管正在審核。核准或拒絕只能由審批主管決定；被退回的案件可修改備註後重新提交。';
+    var rows = state.cases.map(function(c, i){ return {c: c, i: i}; }).filter(function(x){
+      return isSup ? x.c.status !== '待處理' && x.c.status !== '審閱中' && x.c.status !== '待補資料' : x.c.by === meName();
+    });
+    if(!isSup) rows.sort(function(a, b){ return (b.c.status === '待主管核准' ? 1 : 0) - (a.c.status === '待主管核准' ? 1 : 0); });
+    var body = document.getElementById('caseTableBody');
+    body.innerHTML = rows.length ? rows.map(function(x){
+      var c = x.c, i = x.i, editable = !isSup && CASE_EDIT.indexOf(c.status) > -1;
+      var need = c.mode === 'all' ? c.assignees.length : 1;
+      var prog = c.assignees.length ? esc(c.assignees.join('、')) + '（' + (c.mode === 'all' ? '全部會簽' : '任一位') + '）<div class="hint">' + progressText(c, need) + '</div>' : '—';
+      var st = editable ? '<select class="inline" data-cstatus="' + i + '">' + CASE_EDIT.map(function(s){ return '<option' + (s === c.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' : statusPill(c.status);
+      var op = '';
+      if(editable) op = '<button class="btn ghost" data-note="' + i + '">編輯備註</button> <button class="btn" data-submit="' + i + '">提交主管</button>';
+      if(canDecide('case', c)) op = '<button class="btn" data-dec="case:' + i + ':核准">核准</button> <button class="btn danger" data-dec="case:' + i + ':拒絕">拒絕</button> <button class="btn ghost" data-dec="case:' + i + ':退回">退回</button>';
+      return '<tr><td>' + c.id + '</td><td>' + esc(c.name) + '<div class="hint">' + maskId(c.hkid) + '</div></td>' +
+        '<td>' + (c.loan ? c.loan + '<div class="hint">' + fmtMoney(c.amount) + ' · ' + c.term + ' 期</div>' : '—') + '</td>' +
+        '<td class="wrap">' + (esc(c.note) || '—') + '</td><td>' + esc(c.by) + '</td><td class="wrap">' + prog + '</td><td>' + st + '</td><td class="wrap">' + op + '</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty-note">' + (isSup ? '目前沒有已提交的案件。' : '你尚未送審任何案件。') + '</td></tr>';
+    renderSupQueue();
+  }
+
+  function renderSupQueue(){
+    var el = document.getElementById('supPanels');
+    var isSup = role === 'supervisor';
+    document.getElementById('casePanel').style.display = !isSup || (tabState.appr || 'case') === 'case' ? '' : 'none';
+    if(!isSup){ el.innerHTML = ''; document.getElementById('apprTabs').innerHTML = ''; return; }
+    function op(kind, idx, item){
+      return canDecide(kind, item) ? '<button class="btn" data-dec="' + kind + ':' + idx + ':核准">核准</button> <button class="btn danger" data-dec="' + kind + ':' + idx + ':拒絕">拒絕</button>' : '';
+    }
+    var ex = state.exports.map(function(x, i){
+      return '<tr><td>' + x.id + '</td><td>' + esc(x.by) + '</td><td>' + esc(EXP_TARGETS[x.target]) + (x.full ? '<div class="hint">含完整身份證（2 位會簽）</div>' : '') + '</td><td>' + x.formatLabel + '</td><td class="wrap">' + esc(x.purpose) + '</td><td>' + progressText(x, x.need) + '</td><td>' + statusPill(x.status) + '</td><td>' + op('exp', i, x) + '</td></tr>';
+    }).join('') || '<tr><td colspan="8" class="empty-note">目前沒有匯出申請</td></tr>';
+    var co = state.corrections.map(function(x, i){
+      return '<tr><td>' + x.id + '</td><td>' + esc(x.by) + '</td><td>' + x.receipt + '</td><td class="wrap">' + esc(x.reason) + '</td><td>' + progressText(x, 1) + '</td><td>' + statusPill(x.status) + '</td><td>' + op('cor', i, x) + '</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="empty-note">目前沒有付款更正申請</td></tr>';
+    function pend(list, kind){ return list.filter(function(x){ return canDecide(kind, x); }).length; }
+    var pc = pendingForMe() - pend(state.exports, 'exp') - pend(state.corrections, 'cor');
+    document.getElementById('apprTabs').innerHTML = tabsHtml('appr', [['case', '貸款案件（待我核准 ' + pc + '）'], ['exp', '匯出申請（待我核准 ' + pend(state.exports, 'exp') + '）'], ['cor', '付款更正／撤銷（待我核准 ' + pend(state.corrections, 'cor') + '）']], 'case');
+    el.innerHTML =
+      '<div class="panel tab-panel" data-tg="appr" data-tp="exp"' + ((tabState.appr || 'case') === 'exp' ? '' : ' style="display:none"') + '><h2>匯出申請待核准</h2><div class="table-wrap"><table><thead><tr><th>單號</th><th>申請人</th><th>對象</th><th>格式</th><th>用途</th><th>簽核進度</th><th>狀態</th><th></th></tr></thead><tbody>' + ex + '</tbody></table></div></div>' +
+      '<div class="panel tab-panel" data-tg="appr" data-tp="cor"' + ((tabState.appr || 'case') === 'cor' ? '' : ' style="display:none"') + '><h2>付款更正／撤銷待核准</h2><div class="table-wrap"><table><thead><tr><th>單號</th><th>申請人</th><th>收據</th><th>原因</th><th>簽核進度</th><th>狀態</th><th></th></tr></thead><tbody>' + co + '</tbody></table></div></div>';
+  }
+
+  document.getElementById('caseTableBody').addEventListener('change', function(e){
+    var sel = e.target.closest('[data-cstatus]'); if(!sel) return;
+    var c = state.cases[Number(sel.dataset.cstatus)];
+    log('審批狀態變更', c.id + ' → ' + sel.value);
+    c.status = sel.value; renderAll();
+  });
+  document.getElementById('caseTableBody').addEventListener('click', function(e){
+    var b = e.target.closest('[data-note]');
+    if(b){
+      var c = state.cases[Number(b.dataset.note)];
+      askDialog({title: '審批備註 ' + c.id, msg: '審批備註：', input: true, value: c.note, okLabel: '儲存', onOk: function(v){
+        c.note = v; log('編輯審批備註', c.id); renderCases();
+      }});
+      return;
+    }
+    var s = e.target.closest('[data-submit]');
+    if(s) openSubmitCase(Number(s.dataset.submit));
+  });
+  document.getElementById('view-approvals').addEventListener('click', function(e){
+    var d = e.target.closest('[data-dec]'); if(!d) return;
+    var p = d.dataset.dec.split(':');
+    openDecision(p[0], Number(p[1]), p[2]);
+  });
+
+  function openSubmitCase(i){
+    var c = state.cases[i];
+    if(!c.note){ toast('請先填寫案件備註（風險重點與待補資料）再提交'); return; }
+    var sups = supervisors();
+    openModal('<h3>提交審批主管 · ' + c.id + '</h3>' +
+      '<p>指定審批主管（可多位）：</p>' +
+      sups.map(function(u, k){ return '<label class="check-row" style="margin:4px 0"><input type="checkbox" name="sup" value="' + esc(u.name) + '"' + (k === 0 ? ' checked' : '') + '><span>' + esc(u.name) + '（' + esc(u.branch) + '）</span></label>'; }).join('') +
+      '<div class="form-row" style="grid-template-columns:1fr;margin-top:10px"><label><span class="k">簽核方式</span><select id="supMode"><option value="any">任一位主管核准即生效</option><option value="all">全部指定主管會簽</option></select></label></div>' +
+      '<div class="hint">高額或敏感事項建議選會簽；金額門檻與人數規則待核准（PRD #13）。</div>' +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn" id="supSubmitBtn">提交</button></div>');
+    document.getElementById('supSubmitBtn').addEventListener('click', function(){
+      var names = Array.prototype.slice.call(document.querySelectorAll('#modalBox [name=sup]:checked')).map(function(x){ return x.value; });
+      if(!names.length){ toast('請至少指定一位審批主管'); return; }
+      c.assignees = names; c.mode = document.getElementById('supMode').value; c.approvals = []; c.status = '待主管核准';
+      log('提交審批主管', c.id + ' → ' + names.join('、') + '（' + (c.mode === 'all' ? '會簽' : '任一位') + '）');
+      closeModal(); toast('已提交審批主管'); renderAll();
+    });
+  }
+
+  function itemOf(kind, i){ return kind === 'case' ? state.cases[i] : (kind === 'exp' ? state.exports[i] : state.corrections[i]); }
+  function openDecision(kind, i, decision){
+    var it = itemOf(kind, i);
+    if(!canDecide(kind, it)){ toast('無法處理：非指定主管、已處理過，或為自己建立／申請的項目'); return; }
+    var title = kind === 'case' ? it.id + '（' + it.name + '）' : (kind === 'exp' ? it.id + ' 匯出' : it.id + ' 付款更正');
+    openModal('<h3>' + decision + ' · ' + esc(title) + '</h3>' +
+      '<textarea id="decNote" placeholder="備註（必填）"></textarea>' +
+      (kind === 'exp' && it.need > 1 ? '<div class="hint">此申請含完整身份證，需 2 位主管會簽；目前已核准 ' + (it.approvals || []).filter(function(a){ return a.decision === '核准'; }).length + ' 位。</div>' : '') +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn ' + (decision === '拒絕' ? 'danger' : '') + '" id="decBtn">確認' + decision + '</button></div>');
+    document.getElementById('decBtn').addEventListener('click', function(){
+      var note = document.getElementById('decNote').value.trim();
+      if(!note){ toast('請填寫備註'); return; }
+      applyDecision(kind, it, decision, note); closeModal(); renderAll();
+    });
+  }
+  function applyDecision(kind, it, decision, note){
+    it.approvals = it.approvals || [];
+    it.approvals.push({name: meName(), decision: decision, time: stamp(), comment: note});
+    var okCount = it.approvals.filter(function(a){ return a.decision === '核准'; }).length;
+    if(kind === 'case'){
+      if(decision === '拒絕') it.status = '已拒絕';
+      else if(decision === '退回'){ it.status = '審閱中'; it.approvals = []; }
+      else if(it.mode === 'any' || okCount >= it.assignees.length) it.status = '已核准';
+      var ln = it.loan && state.loans.filter(function(x){ return x.id === it.loan; })[0];
+      if(ln && ln.status === '申請'){ if(it.status === '已核准') ln.status = '批核'; else if(it.status === '已拒絕') ln.status = '已拒絕'; }
+    } else if(kind === 'exp'){
+      if(decision === '拒絕') it.status = '已拒絕';
+      else if(okCount >= it.need) it.status = '已核准';
+    } else {
+      var p = state.payments.filter(function(x){ return x.id === it.receipt; })[0];
+      var l = p && state.loans.filter(function(x){ return x.id === p.loan; })[0];
+      if(decision === '拒絕'){ it.status = '已拒絕'; if(p) p.status = '正常'; }
+      else { it.status = '已核准'; if(p){ p.status = '已撤銷'; if(l){ l.paid -= p.amount; if(l.status === '結清') l.status = '還款中'; } } }
+    }
+    log('主管' + decision, (kind === 'case' ? it.id : it.id) + '：' + note);
+  }
+
+  // ---------- payments ----------
+  var PAYABLE = ['放款','還款中','逾期'];
+  function payLoanObj(){ var v = document.getElementById('payLoan').value; return state.loans.filter(function(l){ return l.id === v; })[0]; }
+  function fillPayForm(){
+    var l = payLoanObj(), info = document.getElementById('payInfo');
+    if(!l){ info.innerHTML = ''; document.getElementById('payPeriod').value = ''; document.getElementById('payAmount').value = ''; return; }
+    var s = loanSummary(l), n = s.next;
+    document.getElementById('payPeriod').value = n ? n.n + ' / ' + l.term : '已全部收齊';
+    document.getElementById('payAmount').value = n ? n.left : 0;
+    document.getElementById('payCollector').value = collectorOf(l);
+    info.innerHTML = '<div class="kv-grid" style="margin-bottom:10px">' + kv('借款人', esc(l.name)) + kv('貸款金額', fmtMoney(l.amount)) + kv('每期應還', fmtMoney(s.pmt)) +
+      kv('已收期數', s.done + ' / ' + l.term) + kv('忘繳期數', s.lateCount + ' 期（' + fmtMoney(s.lateAmount) + '）') + kv('已收金額', fmtMoney(s.received)) + kv('尚欠金額', fmtMoney(s.out)) + kv('狀態', l.status) + '</div>';
+  }
+  var selectedPayCust = null, payFormOpen = false;
+  function closePayForm(){ payFormOpen = false; renderPayments(); }
+  function closePayCust(){ selectedPayCust = null; payFormOpen = false; renderPayments(); }
+  document.getElementById('payFormClose').addEventListener('click', closePayForm);
+  document.getElementById('payFormPanel').addEventListener('click', function(e){ if(e.target === this) closePayForm(); });
+  function payCustList(){
+    var q = (document.getElementById('payCustSearch').value || '').trim().toUpperCase(), qd = q.replace(/[^0-9]/g, '');
+    return state.customers.filter(function(c){
+      return !q || c.name.toUpperCase().indexOf(q) > -1 || c.hkid.indexOf(q) > -1 || (qd && (c.phone || '').indexOf(qd) > -1);
+    }).sort(function(a, b){ return custStats(b).late - custStats(a).late; });
+  }
+  function renderPayCust(){
+    var list = payCustList();
+    document.getElementById('payCustBody').innerHTML = list.length ? list.map(function(c){
+      var st = custStats(c), sel = c.hkid === selectedPayCust;
+      return '<tr class="clickable" data-selcust="' + c.hkid + '"' + (sel ? ' style="background:var(--accent-soft)"' : '') + '><td>' + esc(c.name) + alertMark(c.hkid) + '</td><td>' + (can('seeUnmasked') ? c.hkid : maskId(c.hkid)) + '</td><td>' + esc(c.phone || '—') + '</td><td>' + esc(c.collector || '未指派') + '</td>' +
+        '<td>' + custLoans(c).length + '</td><td>' + fmtMoney(st.out) + '</td><td>' + (st.late ? '<span class="pill bad">' + st.late + ' 期</span>' : '—') + '</td><td><button class="btn ghost" data-selcustbtn="' + c.hkid + '">' + (sel ? '已選擇' : '選擇') + '</button></td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty-note">查無符合的借款人' + '' + '</td></tr>';
+    var card = document.getElementById('payCustCard'), c = selectedPayCust && findCustomer(selectedPayCust);
+    if(!c){ hideDetailModal(card); return; }
+    var st = custStats(c), amlHit = state.aml.filter(function(a){ return a.hkid === c.hkid; })[0];
+    showDetailModal(card, '借款人 ' + esc(c.name), '<div class="detail">' +
+      (amlHit ? '<div class="banner alert"><span>⚠</span><div><span class="b-title">此借款人列於警示名單</span>' + esc(amlHit.kind || '') + ' — ' + esc(amlHit.content) + '</div></div>' : '') +
+      '<div class="caption" style="margin-top:0">借款人 · ' + esc(c.name) + '</div>' +
+      '<div class="kv-grid" style="margin-bottom:10px">' + kv('電話', esc(c.phone || '—')) + kv('電郵', esc(c.email || '—')) + kv('負責業務', esc(c.collector || '未指派')) + kv('貸款數', custLoans(c).length) + kv('尚欠總額', fmtMoney(st.out)) + kv('忘繳期數', st.late + ' 期') + '</div>' +
+      '<div class="caption">選擇要收款的貸款</div>' +
+      '<div class="table-wrap"><table><thead><tr><th>編號</th><th>類別</th><th>金額</th><th>期數</th><th>已收期數</th><th>忘繳期數</th><th>尚欠</th><th>狀態</th><th></th></tr></thead><tbody>' +
+      custLoans(c).map(function(l){
+        var s = hasSchedule(l) ? loanSummary(l) : null, ok = PAYABLE.indexOf(l.status) > -1;
+        return '<tr><td>' + l.id + '</td><td>' + esc(l.type || '私人貸款') + '</td><td>' + fmtMoney(l.amount) + '</td><td>' + l.term + '</td><td>' + (s ? s.done + ' / ' + l.term : '—') + '</td>' +
+          '<td>' + (s && s.lateCount ? '<span class="pill bad">' + s.lateCount + ' 期</span>' : '—') + '</td><td>' + (s ? fmtMoney(s.out) : '—') + '</td><td><span class="pill" data-status="' + l.status + '">' + l.status + '</span></td>' +
+          '<td>' + (ok ? '<button class="btn ghost" data-selloan="' + l.id + '">收款</button>' : '<span class="hint">' + (l.status === '結清' ? '已結清' : '尚未放款') + '</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>', closePayCust);
+  }
+  document.getElementById('payCustSearch').addEventListener('input', renderPayCust);
+  document.getElementById('payCustPanel').addEventListener('click', function(e){
+    var b = e.target.closest('[data-selcust]');
+    var l = e.target.closest('[data-selloan]');
+    if(l){
+      var sel = document.getElementById('payLoan'); sel.value = l.dataset.selloan; fillPayForm();
+      payFormOpen = true; renderPayments();
+      return;
+    }
+    if(b){ selectedPayCust = b.dataset.selcust; renderPayments(); }
+  });
+
+  function renderPayments(){
+    renderPayCust();
+    document.getElementById('payFormPanel').classList.toggle('open', !!(payFormOpen && selectedPayCust));
+    var pcSel = document.getElementById('payCollector'), pcCur = pcSel.value;
+    pcSel.innerHTML = collectorOptionsHtml(); pcSel.value = pcCur;
+    var sel = document.getElementById('payLoan'), cur = sel.value;
+    var ls = state.loans.filter(function(l){ return PAYABLE.indexOf(l.status) > -1 && l.hkid === selectedPayCust; });
+    sel.innerHTML = ls.length ? ls.map(function(l){ return '<option value="' + l.id + '">' + l.id + ' · ' + esc(l.name) + ' · ' + l.status + '</option>'; }).join('') : '<option value="">' + (selectedPayCust ? '（此借款人沒有可收款的貸款）' : '（請先查詢客戶）') + '</option>';
+    if(cur && ls.some(function(l){ return l.id === cur; })) sel.value = cur;
+    fillPayForm();
+    var pd = document.getElementById('payDate'); if(!pd.value) pd.value = todayStr();
+    var visPay = state.payments.map(function(p, i){ return {p: p, i: i}; });
+    document.getElementById('payTableBody').innerHTML = visPay.length ? visPay.map(function(x){ var p = x.p, i = x.i;
+      var pending = state.corrections.some(function(c){ return c.receipt === p.id && c.status === '待主管核准'; });
+      return '<tr><td>' + p.id + '</td><td>' + p.date + '</td><td>' + p.loan + '</td><td>' + esc(p.name) + '</td><td>' + p.period + '</td><td>' + fmtMoney(p.amount) + '</td><td>' + esc(p.method) + '</td><td>' + esc(p.collector || '—') + '</td><td>' + esc(p.by) + '</td><td>' + statusPill(p.status) + '</td>' +
+        '<td><button class="btn ghost" data-rcp="' + i + '">收據</button> ' + (p.status === '正常' && !pending ? '<button class="btn ghost" data-cor="' + i + '">申請更正／撤銷</button> ' : '') + (p.status === '正常' ? '<button class="btn ghost" data-paymail="' + i + '">收款確認郵件</button>' : '') + '</td></tr>';
+    }).join('') : '<tr><td colspan="11" class="empty-note">尚無付款紀錄</td></tr>';
+  }
+  document.getElementById('payLoan').addEventListener('change', fillPayForm);
+  document.getElementById('payBtn').addEventListener('click', function(){
+    var l = payLoanObj(); if(!l){ toast('沒有可入帳的貸款'); return; }
+    var amt = Number(document.getElementById('payAmount').value), date = document.getElementById('payDate').value;
+    var s = loanSummary(l);
+    if(!date || !(amt > 0)){ toast('請輸入付款日期及大於 0 的金額'); return; }
+    if(amt > s.out){ toast('付款金額超過尚欠 ' + fmtMoney(s.out) + '；提前還款與一次清償規則待核准'); return; }
+    var period = s.next ? s.next.n : l.term;
+    var dup = state.payments.some(function(p){ return p.loan === l.id && p.date === date && p.amount === amt && p.status !== '已撤銷'; });
+    function doPay(){
+    l.paid += amt;
+    refreshLoanStatuses();
+    var p = {id: 'RCP-' + new Date().getFullYear() + '-' + String(state.payments.length + 1).padStart(3, '0'), date: date, loan: l.id, name: l.name, hkid: l.hkid, period: period + '/' + l.term, amount: amt, method: document.getElementById('payMethod').value, collector: document.getElementById('payCollector').value, note: document.getElementById('payNote').value.trim(), by: meName(), status: '正常', after: Math.max(0, totalOf(l) - l.paid)};
+    state.payments.push(p);
+    log('付款入帳', p.id + ' · ' + l.id + ' · ' + fmtMoney(amt));
+    document.getElementById('payNote').value = '';
+    toast('已入帳，收據 ' + p.id); selectedPayCust = null; payFormOpen = false; renderAll(); showReceipt(p);
+    }
+    if(dup) askDialog({title: '重複入帳', msg: '同一貸款、日期、金額已有入帳紀錄，確定要再入帳嗎？', okLabel: '確定入帳', onOk: doPay});
+    else doPay();
+  });
+  function showReceipt(p){
+    openModal('<h3>收據 ' + p.id + '</h3><div class="kv-grid" style="margin-bottom:10px">' + kv('日期', p.date) + kv('貸款', p.loan) + kv('借款人', esc(p.name)) + kv('期數', p.period) + kv('金額', fmtMoney(p.amount)) + kv('付款方式', esc(p.method)) + kv('入帳後尚欠', fmtMoney(p.after)) + kv('收款業務', esc(p.collector || '—')) + kv('經辦', esc(p.by)) + '</div>' +
+      (p.note ? '<p>備註：' + esc(p.note) + '</p>' : '') + '<div class="hint">示範：正式版可列印或匯出 PDF 收據。</div><div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+  }
+  document.getElementById('payTableBody').addEventListener('click', function(e){
+    var r = e.target.closest('[data-rcp]');
+    if(r){ showReceipt(state.payments[Number(r.dataset.rcp)]); return; }
+    var pm = e.target.closest('[data-paymail]');
+    if(pm){ var pp = state.payments[Number(pm.dataset.paymail)]; openMail(pp.loan, '收款確認'); return; }
+    var c = e.target.closest('[data-cor]'); if(!c) return;
+    var p = state.payments[Number(c.dataset.cor)];
+    askDialog({title: '申請更正／撤銷 ' + p.id, msg: '請填寫更正或撤銷原因（送審批主管核准）：', input: true, required: true, okLabel: '送審', onOk: function(reason){
+      state.corrections.push({id: 'COR-' + String(state.corrections.length + 1).padStart(3, '0'), receipt: p.id, reason: reason, by: meName(), status: '待主管核准', approvals: []});
+      p.status = '更正申請中'; log('申請付款更正', p.id); toast('已送審批主管核准'); renderAll();
+    }});
+  });
+
+  // ---------- exports ----------
+  var EXP_TARGETS = {loans:'貸款清單', schedule:'還款計劃與收款進度', payments:'還款與付款紀錄', cases:'審批案件', borrowers:'還款人資料', notices:'通知紀錄', audit:'稽核紀錄'};
+  var EXP_BY_ROLE = {approver:['loans','schedule','payments','cases','borrowers'], supervisor:['loans','schedule','payments','cases','borrowers'], company:['loans','schedule','payments','borrowers','notices'], sysadmin:['audit']};
+  var FORMAT_LABEL = {xls:'Excel', csv:'CSV', pdf:'PDF'};
+  function renderExports(){
+    var ts = EXP_BY_ROLE[role] || [];
+    var sel = document.getElementById('expTarget'), cur = sel.value;
+    sel.innerHTML = ts.map(function(k){ return '<option value="' + k + '">' + EXP_TARGETS[k] + '</option>'; }).join('');
+    if(cur && ts.indexOf(cur) > -1) sel.value = cur;
+    document.getElementById('expFullRow').style.display = role === 'sysadmin' ? 'none' : '';
+    var me = meName();
+    var rows = state.exports.map(function(x, i){ return {x: x, i: i}; }).filter(function(o){ return role === 'supervisor' || o.x.by === me; });
+    document.getElementById('expTableBody').innerHTML = rows.length ? rows.map(function(o){
+      var x = o.x, op = '';
+      if(x.status === '已核准' && !x.downloaded) op = '<button class="btn" data-dl="' + o.i + '">下載</button>';
+      else if(x.downloaded) op = '<span class="hint">已下載</span>';
+      return '<tr><td>' + x.id + '</td><td>' + esc(x.by) + '</td><td>' + esc(EXP_TARGETS[x.target]) + (x.full ? '<div class="hint">含完整身份證</div>' : '') + '</td><td>' + x.formatLabel + '</td><td class="wrap">' + esc(x.purpose) + '</td><td>' + progressText(x, x.need) + '</td><td>' + statusPill(x.status) + '</td><td>' + op + '</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty-note">尚無匯出申請</td></tr>';
+  }
+  document.getElementById('expBtn').addEventListener('click', function(){
+    var purpose = document.getElementById('expPurpose').value.trim();
+    var target = document.getElementById('expTarget').value;
+    if(!target){ toast('目前角色沒有可匯出的對象'); return; }
+    if(!purpose){ toast('請填寫匯出用途'); return; }
+    var fmt = document.getElementById('expFormat').value, full = role !== 'sysadmin' && document.getElementById('expFull').checked;
+    var x = {id: 'EXP-' + new Date().getFullYear() + '-' + String(state.exports.length + 1).padStart(3, '0'), by: meName(), target: target, format: fmt, formatLabel: FORMAT_LABEL[fmt], purpose: purpose, full: full, need: full ? 2 : 1, approvals: [], status: '待主管核准', downloaded: false, time: stamp()};
+    state.exports.push(x);
+    log('提出匯出申請', x.id + ' · ' + EXP_TARGETS[target] + ' · ' + FORMAT_LABEL[fmt] + (full ? '（含完整身份證）' : ''));
+    document.getElementById('expPurpose').value = ''; document.getElementById('expFull').checked = false;
+    toast('已送審批主管核准'); renderAll();
+  });
+  document.getElementById('expTableBody').addEventListener('click', function(e){
+    var b = e.target.closest('[data-dl]'); if(!b) return;
+    downloadExport(state.exports[Number(b.dataset.dl)]);
+  });
+  function exportData(x){
+    var id = function(hk){ return x.full ? hk : maskId(hk); };
+    if(x.target === 'loans') return {head:['編號','客戶','身份證','貸款類別','金額','年利率%','期數','每期還款','申請日期','狀態','已收金額'], rows: state.loans.map(function(l){ return [l.id, l.name, id(l.hkid), l.type || '', l.amount, l.rate || 0, l.term, pmtOf(l), l.apply, l.status, Math.min(l.paid, totalOf(l))]; })};
+    if(x.target === 'schedule'){
+      var rows = [];
+      state.loans.forEach(function(l){ scheduleOf(l).forEach(function(p){ rows.push([l.id, l.name, p.n + '/' + l.term, p.due, p.amt, p.rec, p.left, p.st, p.days]); }); });
+      return {head:['貸款','客戶','期數','到期日','應收','已收','未收','狀態','逾期天數'], rows: rows};
+    }
+    if(x.target === 'payments') return {head:['收據編號','日期','貸款','客戶','期數','金額','付款方式','收款業務','經辦','狀態'], rows: state.payments.map(function(p){ return [p.id, p.date, p.loan, p.name, p.period, p.amount, p.method, p.collector || '', p.by, p.status]; })};
+    if(x.target === 'cases') return {head:['案件編號','貸款','客戶','身份證','金額','期數','備註','經辦人','狀態'], rows: state.cases.map(function(c){ return [c.id, c.loan || '', c.name, id(c.hkid), c.amount || '', c.term || '', c.note, c.by, c.status]; })};
+    if(x.target === 'borrowers') return {head:['姓名','身份證','電話','電郵','負責業務','地址','職業','月收入'], rows: state.customers.map(function(c){ return [c.name, id(c.hkid), c.phone, c.email, c.collector || '', c.address, c.job, c.income]; })};
+    if(x.target === 'notices') return {head:['單號','時間','貸款','客戶','類型','收件人','主旨','經辦'], rows: state.notices.map(function(n){ return [n.id, n.time, n.loan, n.name, n.kind, n.to, n.subject, n.by]; })};
+    return {head:['時間','使用者','角色','操作','內容'], rows: state.audit.map(function(a){ return [a.time, a.user, a.role, a.action, a.detail]; })};
+  }
+  function downloadExport(x){
+    if(x.status !== '已核准' || x.downloaded){ toast('此申請不可下載'); return; }
+    var d = exportData(x), mark = '匯出單號：' + x.id + '　匯出人：' + x.by + '　時間：' + stamp() + '　用途：' + x.purpose + (x.full ? '　含完整身份證' : '　身份證已遮罩');
+    var name = x.id + '_' + x.target, blob;
+    if(x.format === 'csv'){
+      var q = function(v){ return '"' + String(v).replace(/"/g, '""') + '"'; };
+      var csv = '\ufeff' + q('# ' + mark) + '\r\n' + d.head.map(q).join(',') + '\r\n' + d.rows.map(function(r){ return r.map(q).join(','); }).join('\r\n');
+      blob = new Blob([csv], {type: 'text/csv;charset=utf-8'}); name += '.csv';
+    } else if(x.format === 'xls'){
+      var tbl = '<html><head><meta charset="utf-8"></head><body><p>' + esc(mark) + '</p><table border="1"><tr>' + d.head.map(function(hd){ return '<th>' + esc(hd) + '</th>'; }).join('') + '</tr>' + d.rows.map(function(r){ return '<tr>' + r.map(function(v){ return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') + '</table></body></html>';
+      blob = new Blob([tbl], {type: 'application/vnd.ms-excel;charset=utf-8'}); name += '.xls';
+    } else {
+      x.downloaded = true; log('下載匯出', x.id + '（PDF 預覽）');
+      openModal('<h3>PDF 預覽 · ' + x.id + '</h3><div class="hint" style="margin:0 0 8px">' + esc(mark) + '</div><div class="table-wrap"><table><thead><tr>' + d.head.map(function(hd){ return '<th>' + esc(hd) + '</th>'; }).join('') + '</tr></thead><tbody>' + (d.rows.map(function(r){ return '<tr>' + r.map(function(v){ return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') || '<tr><td class="empty-note">無資料</td></tr>') + '</tbody></table></div><div class="hint">示範以畫面預覽代替 PDF 檔；正式版產生含浮水印的 PDF。</div><div class="modal-foot"><button class="btn" data-close>關閉</button></div>');
+      renderAll(); return;
+    }
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    x.downloaded = true; log('下載匯出', x.id); toast('已下載 ' + name); renderAll();
+  }
+
+  // ---------- settings ----------
+  var settingsTab = null;
+  var SETTINGS_TABS = {
+    company: [['users','使用者管理'], ['test','測試資料']],
+    sysadmin: [['review','權限覆核'], ['dict','資料字典'], ['audit','稽核紀錄']]
+  };
+  var DICT = [
+    ['狀態值', 'v1.2', '申請／批核／放款／還款中／逾期／結清；審批案件：待處理／審閱中／待補資料／待主管核准／已核准／已拒絕', '系統管理員（示範）', '2026-09-01'],
+    ['貸款類別', 'v1.0', '私人貸款／稅務貸款／分期貸款', '系統管理員（示範）', '2026-09-01'],
+    ['錯誤碼', 'v1.1', 'E101 格式錯誤／E201 授權過期／E301 餘額不足／E504 服務逾時', '系統管理員（示範）', '2026-09-01'],
+    ['角色代碼', 'v1.1', 'approver／supervisor／company／sysadmin', '系統管理員（示範）', '2026-09-01']
+  ];
+
+  function renderSettings(){
+    var tabs = SETTINGS_TABS[role];
+    if(!tabs) return;
+    if(!settingsTab || !tabs.some(function(t){ return t[0] === settingsTab; })) settingsTab = tabs[0][0];
+    document.getElementById('settingsTabs').innerHTML = tabs.map(function(t){
+      return '<button data-stab="' + t[0] + '"' + (t[0] === settingsTab ? ' class="active"' : '') + '>' + t[1] + '</button>';
+    }).join('');
+    document.getElementById('settingsBody').innerHTML = SETTINGS_VIEWS[settingsTab]();
+  }
+
+  var SETTINGS_VIEWS = {
+    users: function(){
+      return '<div class="table-wrap"><table><thead><tr><th>使用者</th><th>分行</th><th>角色</th><th>狀態</th><th></th></tr></thead><tbody>' +
+        state.users.map(function(u, i){
+          var self = u.name === ME[role], fixed = self || u.role === 'sysadmin';
+          var roleCell = fixed ? ROLES[u.role] + (self ? '（本人）' : '') :
+            '<select class="inline" data-urole="' + i + '">' + ['approver','supervisor','company'].map(function(k){ return '<option value="' + k + '"' + (k === u.role ? ' selected' : '') + '>' + ROLES[k] + '</option>'; }).join('') + '</select>';
+          var st = u.pending ? '<span class="pill warn">待覆核 → ' + ROLES[u.newRole] + '</span>' : (u.active ? '<span class="pill ok">啟用</span>' : '<span class="pill">已停用</span>');
+          return '<tr><td>' + esc(u.name) + '</td><td>' + esc(u.branch) + '</td><td>' + roleCell + '</td><td>' + st + '</td><td>' +
+            (fixed ? '' : '<button class="btn ghost" data-act="toggleUser" data-i="' + i + '">' + (u.active ? '停用' : '啟用') + '</button>') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        '<div class="hint">權限變更原則：公司管理員、審批主管屬高風險權限，變更需由第二名管理者（系統管理員）覆核；轉職或離職應及時停用；所有變更均產生稽核紀錄；不得共用帳號。</div>';
+    },
+    quota: function(){
+      var c = state.company;
+      return '<div class="kv-grid" style="margin-bottom:14px">' + kv('公司可用餘額', fmtMoney(c.balance)) + kv('每次 TE 查詢費用', fmtMoney(c.fee)) + kv('交易筆數', state.txns.length) + '</div>' +
+        '<div class="table-wrap"><table><thead><tr><th>時間</th><th>類型</th><th>金額</th><th>交易編號</th></tr></thead><tbody>' +
+        state.txns.map(function(t){ return '<tr><td>' + t.time + '</td><td>' + t.type + '</td><td>' + (t.amount < 0 ? '-' : '+') + fmtMoney(Math.abs(t.amount)) + '</td><td>' + t.ref + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+        '<div class="detail-actions" style="margin-top:12px"><button class="btn" data-act="topup">申請加值 HK$100（示範：模擬核准入帳）</button></div>' +
+        '<div class="hint">不可直接修改餘額或手工覆蓋交易結果；失敗或逾時交易需先查看交易狀態再處理退款或調整；費率變更須依公司審批流程。</div>';
+    },
+    test: function(){
+      return '<div class="banner ok"><span>ℹ</span><div><span class="b-title">測試資料功能只可在測試環境使用</span>新增前請確認該身份證沒有對應正式客戶。</div></div>' +
+        '<div class="form-row" style="grid-template-columns:1fr 1fr 140px"><label><span class="k">測試身份證</span><input type="text" id="testHkid" placeholder="例如 T1000001"></label>' +
+        '<label><span class="k">客戶名稱</span><input type="text" id="testName" placeholder="測試客戶名稱"></label>' +
+        '<label><span class="k">&nbsp;</span><button class="btn" style="width:100%" data-act="addTest">新增資料</button></label></div>' +
+        '<div class="table-wrap"><table><thead><tr><th>測試身份證</th><th>名稱</th></tr></thead><tbody>' +
+        (state.testCustomers.length ? state.testCustomers.map(function(t){ return '<tr><td>' + esc(t.hkid) + '</td><td>' + esc(t.name) + '</td></tr>'; }).join('') : '<tr><td colspan="2" class="empty-note">尚未新增測試客戶</td></tr>') + '</tbody></table></div>' +
+        '<div class="detail-actions" style="margin-top:12px"><button class="btn danger" data-act="resetTest">重置測試資料</button></div>' +
+        '<div class="hint">重置前請確認沒有其他測試人員正在使用同一組資料；重置後新增的測試客戶將被清除，預設測試客戶回復。</div>';
+    },
+    integration: function(){
+      return '<div class="table-wrap"><table><thead><tr><th>服務</th><th>版本</th><th>最後同步</th><th>錯誤率</th><th>狀態</th><th></th></tr></thead><tbody>' +
+        state.services.map(function(s, i){
+          return '<tr><td>' + s.name + '</td><td>' + s.version + '</td><td>' + s.sync + '</td><td>' + s.err + '</td><td><span class="pill ' + (s.up ? 'ok' : 'bad') + '">' + (s.up ? '正常' : '中斷') + '</span></td>' +
+            '<td><button class="btn ghost" data-act="toggleSvc" data-i="' + i + '">' + (s.up ? '模擬中斷' : '恢復') + '</button></td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        '<div class="hint">服務異常時記錄錯誤碼、發生時間、交易編號及影響範圍，依服務商支援流程處理，不應直接修改客戶查詢結果。可模擬「TE 信貸查詢」中斷，於客戶查詢頁測試服務逾時；模擬「TE Plus 授權」中斷可測試授權失敗。</div>';
+    },
+    review: function(){
+      var pend = state.users.map(function(u, i){ return {u: u, i: i}; }).filter(function(x){ return x.u.pending; });
+      return pend.length ? '<div class="table-wrap"><table><thead><tr><th>使用者</th><th>申請變更</th><th>申請人</th><th></th></tr></thead><tbody>' +
+        pend.map(function(x){
+          return '<tr><td>' + esc(x.u.name) + '</td><td>' + ROLES[x.u.role] + ' → ' + ROLES[x.u.newRole] + '</td><td>' + esc(x.u.requestedBy) + '</td>' +
+            '<td><button class="btn" data-act="reviewOk" data-i="' + x.i + '">覆核通過</button> <button class="btn ghost" data-act="reviewNo" data-i="' + x.i + '">退回</button></td></tr>';
+        }).join('') + '</tbody></table></div>' :
+        '<div class="empty-state">目前沒有待覆核的高風險權限變更</div>';
+    },
+    dict: function(){
+      return '<div class="table-wrap"><table><thead><tr><th>字典</th><th>版本</th><th>內容</th><th>核准人</th><th>生效日</th></tr></thead><tbody>' +
+        DICT.map(function(d){ return '<tr><td>' + d[0] + '</td><td>' + d[1] + '</td><td class="wrap">' + d[2] + '</td><td>' + d[3] + '</td><td>' + d[4] + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+        '<div class="hint">任何字典變更須具備版本、申請人、核准人、生效時間及回滾方式（示範僅供檢視）。</div>';
+    },
+    audit: function(){
+      return '<div class="table-wrap"><table><thead><tr><th>時間</th><th>使用者</th><th>角色</th><th>操作</th><th>內容</th></tr></thead><tbody>' +
+        (state.audit.length ? state.audit.map(function(a){ return '<tr><td>' + a.time + '</td><td>' + esc(a.user) + '</td><td>' + a.role + '</td><td>' + esc(a.action) + '</td><td class="wrap">' + esc(a.detail) + '</td></tr>'; }).join('') : '<tr><td colspan="5" class="empty-note">尚無稽核事件；請進行查詢、授權或權限操作。</td></tr>') +
+        '</tbody></table></div><div class="hint">稽核紀錄不可由一般使用者修改或刪除；登入、查詢、授權、扣款、權限變更、列印匯出均會被記錄。</div>';
+    }
+  };
+
+  document.getElementById('settingsTabs').addEventListener('click', function(e){
+    var b = e.target.closest('[data-stab]'); if(!b) return;
+    settingsTab = b.dataset.stab; renderSettings();
+  });
+  document.getElementById('settingsBody').addEventListener('change', function(e){
+    var sel = e.target.closest('[data-urole]'); if(!sel) return;
+    var u = state.users[Number(sel.dataset.urole)];
+    if(sel.value === u.role) return;
+    if(sel.value === 'company' || sel.value === 'supervisor'){
+      u.pending = true; u.newRole = sel.value; u.requestedBy = ME[role];
+      log('申請高風險權限變更', u.name + ' → ' + ROLES[sel.value] + '（待覆核）');
+      toast(ROLES[sel.value] + '屬高風險權限，已送交覆核');
+    } else {
+      log('變更角色', u.name + '：' + ROLES[u.role] + ' → ' + ROLES[sel.value]);
+      u.role = sel.value; toast('角色已更新');
+    }
+    renderAll();
+  });
+  document.getElementById('settingsBody').addEventListener('click', function(e){
+    var b = e.target.closest('[data-act]'); if(!b) return;
+    var act = b.dataset.act, i = Number(b.dataset.i), u = state.users[i];
+    if(act === 'toggleUser'){ u.active = !u.active; log(u.active ? '啟用使用者' : '停用使用者', u.name); }
+    else if(act === 'topup'){
+      state.company.balance += 100;
+      state.txns.unshift({time: stamp(), type:'加值', amount: 100, ref:'TXN-' + String(++txnSeq).padStart(4,'0')});
+      log('查詢額度加值', '+HK$100'); toast('加值已入帳');
+    }
+    else if(act === 'addTest'){
+      var hk = document.getElementById('testHkid').value.replace(/[()\s]/g, '').toUpperCase();
+      var nm = document.getElementById('testName').value.replace(/[<>&"']/g, '').trim();
+      if(!/^[A-Z]{1,2}[0-9]{6,7}$/.test(hk) || !nm){ toast('請輸入正確的測試身份證及客戶名稱'); return; }
+      if(findCustomer(hk) || state.loans.some(function(l){ return l.hkid === hk; })){ toast('此身份證已存在，不可覆蓋或對應正式客戶'); return; }
+      state.customers.push({hkid: hk, name: nm + '(測試)', nameEn: 'TEST CUSTOMER', dob: '1990-01-01', gender: 'M', phone: '90000000', email: 'test.customer@example.com', address: '測試地址', job: '測試', income: 0, test: true});
+      state.testCustomers.push({hkid: hk, name: nm});
+      log('新增測試借款人', hk); toast('已新增測試借款人');
+    }
+    else if(act === 'resetTest'){
+      askDialog({title: '重置測試資料', msg: '確認重置測試資料？新增的測試借款人將被清除。', okLabel: '確認重置', danger: true, onOk: function(){
+        state.customers = state.customers.filter(function(c){ return !c.test; });
+        state.loans = state.loans.filter(function(l){ return !state.testCustomers.some(function(t){ return t.hkid === l.hkid; }); });
+        state.testCustomers = [];
+        log('重置測試資料', '測試借款人已清除'); toast('測試資料已重置'); renderAll();
+      }});
+      return;
+    }
+    else if(act === 'toggleSvc'){ var s = state.services[i]; s.up = !s.up; s.err = s.up ? '0.2%' : '100%'; log('介接服務狀態變更', s.name + ' → ' + (s.up ? '正常' : '中斷')); }
+    else if(act === 'reviewOk'){ u.role = u.newRole; u.pending = false; log('覆核通過', u.name + ' → ' + ROLES[u.role]); }
+    else if(act === 'reviewNo'){ u.pending = false; log('覆核退回', u.name); }
+    renderAll();
+  });
+
+  // ---------- guide ----------
+  var GUIDE = {
+    tasks: [
+      ['審核人員', '新增貸款資料、查詢借款人與還款進度、發送還款提醒郵件、審核貸款申請並提交審批主管、確認放款、客戶收款入帳（含上門收款）、申請匯出。', '不得自行批核或拒絕貸款；不得修改費率或他人權限。'],
+      ['審批主管', '批核、拒絕或退回貸款申請；核准匯出申請與付款更正；可設多位主管。', '不得核准自己建立的案件；不得修改費率、介接設定。'],
+      ['公司管理員', '管理使用者、角色、測試資料；客戶收款入帳；放款；申請匯出。', '不得繞過審批；不得直接修改已入帳的金額。'],
+      ['系統管理員', '覆核高風險權限變更、維護資料字典、查看稽核紀錄。', '不得因系統權限而任意查看不必要的客戶個資。']
+    ],
+    steps: {
+      approver: ['登入並確認角色為審核人員', '到「借款人」搜尋客戶，先確認是否已有資料及未結清貸款', '按「新增貸款資料」，填寫借款人、貸款條件並核對文件，確認每期還款預覽', '在「貸款」查看「申請」狀態的貸款與還款人資料', '審核後按「提交審批主管」，寫審核意見並指定主管（可多位）', '主管批核後貸款轉為「批核」，按「確認放款」產生還款計劃', '客戶還款或上門收款後到「客戶還款」入帳並提供收據（系統記錄收款業務）', '到「已送審清單」查看送審案件哪些正由審批主管審核、審核結果為何', '到「還款提示」處理忘繳，發送逾期通知郵件', '在貸款明細的「還款計劃」查看每一期是否已收、收了多少、忘繳幾期'],
+      supervisor: ['登入並確認角色為審批主管', '在首頁或審批清單查看「待我核准」的貸款申請、匯出申請與付款更正', '核對還款人資料、貸款條件與審核意見後核准、拒絕或退回（備註必填）', '含完整身份證的匯出需 2 位主管會簽', '不得核准自己建立或申請的項目'],
+      company: ['查看貸款、借款人與還款進度', '處理客戶收款入帳與放款', '管理使用者及角色（審批主管與公司管理員屬高風險，需覆核）', '在測試環境維護測試借款人', '需要匯出時提出申請，經審批主管核准後下載'],
+      sysadmin: ['覆核高風險權限變更', '維護資料字典（需版本、申請人、核准人、生效時間、回滾方式）', '定期查看安全及稽核紀錄']
+    },
+    checklist: {
+      approver: ['新增的貸款資料已核對身份證正本', '已審核所有「申請」狀態的貸款', '已提交審批主管並填寫審核意見', '當日付款已入帳並提供收據', '已對忘繳的借款人發送提醒或逾期通知郵件', '沒有將客戶資料留在私人文件或聊天工具', '已保存必要的備註，並已登出或鎖定工作台'],
+      supervisor: ['已處理「待我核准」的貸款申請、匯出與付款更正', '已為每項決定填寫備註', '逾時未處理的項目已提醒或轉交代理人'],
+      company: ['已檢查當日付款與放款', '已處理使用者權限申請及停用要求', '已確認測試資料不會混入正式環境', '已將未解決問題交接給系統管理員'],
+      sysadmin: ['已檢查異常登入及權限變更', '已保留必要稽核及系統事件', '已記錄尚未解決的問題']
+    },
+    faq: [
+      ['怎麼知道某期有沒有忘繳？', '到「貸款」點選貸款，切到「還款計劃」頁籤：每一期顯示應收、已收、未收與狀態（已收／未到期／部分收款／忘繳），並顯示忘繳期數與逾期天數。'],
+      ['錢有沒有收到、收了多少？', '還款計劃頁籤上方有「已收金額」與「尚欠金額」；「客戶還款」頁的付款紀錄有每一筆收據。借款人頁也可看到每筆貸款的已收與尚欠。'],
+      ['怎麼通知借款人？', '在「還款提示」或貸款明細按「發送郵件」，系統帶出到期提醒／逾期通知／收款確認範本，可修改後按「開啟郵件程式並記錄」。示範版用電腦的郵件程式開信，並在借款人頁留下通知紀錄。'],
+      ['為什麼我不能直接批核貸款？', '貸款申請一律由審批主管批核；審核人員只能審核並提交。核准後貸款轉為「批核」才可放款。'],
+      ['還款人資料在哪裡查？', '左側「借款人」：可用姓名、身份證、電話或負責業務搜尋，點選一列查看個人資料、所有貸款、還款進度與通知紀錄。'],
+      ['誰負責向借款人收錢？', '每位借款人都有「負責業務」（上門收款的同事）。新增貸款時必須指定；借款人頁、還款提示可用負責業務篩選；審核人員、審批主管、公司管理員可更改。入帳時會記錄「收款業務」。']
+    ],
+    rules: ['只可為正式業務目的查看還款人資料', '不得截圖、拍攝、複製或轉發未經授權的客戶資料', '不得將身份證、姓名、電話、貸款金額放入私人通訊工具', '離開座位前應鎖定螢幕或登出（可用右上角「鎖定畫面」）', '發現資料外洩、帳號共用、錯誤權限時，應立即通報', '所有入帳、匯出、審批及郵件通知操作均會被記錄及稽核'],
+    pending: ['正式登入方式、密碼政策及多因素驗證', '角色建立、停用及權限申請流程', '香港身份證驗證規則及支援證件類型', '年利率上限與計息方式（需法遵確認）；等額本息以外的還款方式', '逾期罰息與寬限期規則', '郵件通知的正式發送機制、範本與退信處理', '客戶收款入帳規則：付款方式、沖銷順序、多繳少繳、更正權限', '主管簽核規則：主管人數、會簽人數與金額門檻、代理人與逾時處理', '匯出規則：格式與欄位、筆數上限、下載有效期、浮水印、保存期限', '個資遮罩、列印及稽核紀錄規則', '資料保存、刪除、匿名化及備份政策', '首版範圍：客戶收款入帳、匯出、多位主管會簽是否納入首版（待主管評估）']
+  };
+
+  function renderGuide(){
+    var chk = GUIDE.checklist[role];
+    var html =
+      '<div class="banner warn"><span>ℹ</span><div><span class="b-title">草稿內容 · UM-CI-001 v0.1</span>本頁整理自使用者操作手冊草稿；正式上線前，登入方式、權限、TE／TU 介接、費率、授權期限及錯誤訊息須以核准版本為準。測試數字不得用於正式業務判斷。</div></div>' +
+      '<div class="panel"><h2>角色與日常任務</h2><div class="table-wrap"><table><thead><tr><th>角色</th><th>日常主要任務</th><th>不應執行的操作</th></tr></thead><tbody>' +
+      GUIDE.tasks.map(function(t){ return '<tr' + (t[0] === ROLES[role] ? ' style="background:var(--accent-soft)"' : '') + '><td>' + t[0] + '</td><td class="wrap">' + t[1] + '</td><td class="wrap">' + t[2] + '</td></tr>'; }).join('') + '</tbody></table></div></div>' +
+      '<div class="grid-2"><div class="panel"><h2>' + ROLES[role] + ' · 日常流程</h2><ol class="plain">' + GUIDE.steps[role].map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ol></div>' +
+      '<div class="panel"><h2>' + ROLES[role] + ' · 結束檢查清單</h2>' + chk.map(function(c, i){
+        var key = role + ':' + i;
+        return '<label class="check-row" style="margin:6px 0"><input type="checkbox" data-chk="' + key + '"' + (state.checks[key] ? ' checked' : '') + '><span>' + c + '</span></label>';
+      }).join('') + '</div></div>' +
+      '<div class="panel"><h2>常見問題</h2>' + GUIDE.faq.map(function(f){ return '<details class="faq"><summary>' + f[0] + '</summary><p>' + f[1] + '</p></details>'; }).join('') + '</div>' +
+      '<div class="grid-2"><div class="panel"><h2>資料保護與使用規範</h2><ul class="plain">' + GUIDE.rules.map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ul></div>' +
+      '<div class="panel"><h2>待核准項目（上線前必須確認）</h2><ul class="plain">' + GUIDE.pending.map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ul></div></div>';
+    document.getElementById('guideBody').innerHTML = html;
+  }
+  document.getElementById('guideBody').addEventListener('change', function(e){
+    var c = e.target.closest('[data-chk]'); if(!c) return;
+    state.checks[c.dataset.chk] = c.checked;
+  });
+
+  // ---------- 警示名單 ----------
+  var ALERT_KINDS = ['洗黑錢疑點', '欺詐／偽造文件', '惡意拖欠', '證件／地址疑點', '其他'];
+  function alertMark(hkid){
+    return state.aml.some(function(a){ return a.hkid === hkid; }) ? ' <span title="警示戶" style="color:var(--danger)">⚠</span>' : '';
+  }
+  document.getElementById('amlKindFilter').innerHTML = '<option value="">全部類別</option>' + ALERT_KINDS.map(function(k){ return '<option>' + k + '</option>'; }).join('');
+  function renderAml(){
+    var q = (document.getElementById('amlSearch').value || '').trim().toUpperCase(), kf = document.getElementById('amlKindFilter').value;
+    var rows = state.aml.filter(function(a){
+      var hit = !q || (a.hkid || '').indexOf(q) > -1 || (a.name || '').toUpperCase().indexOf(q) > -1 || (a.content || '').toUpperCase().indexOf(q) > -1;
+      return hit && (!kf || a.kind === kf);
+    });
+    document.getElementById('amlTableBody').innerHTML = rows.length ? rows.map(function(a){
+      return '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.date) + '</td><td>' + (can('seeUnmasked') ? esc(a.hkid) : maskId(a.hkid)) + '</td><td>' + esc(a.name || '—') + '</td>' +
+        '<td><span class="pill bad">' + esc(a.kind || '其他') + '</span></td><td class="wrap">' + esc(a.content) + '</td><td>' + esc(a.by || '—') + '</td></tr>';
+    }).join('') : '<tr><td colspan="7" class="empty-note">' + (state.aml.length ? '查無符合的警示戶' : '警示名單目前為空') + '</td></tr>';
+  }
+  document.getElementById('amlSearch').addEventListener('input', renderAml);
+  document.getElementById('amlKindFilter').addEventListener('change', renderAml);
+
+  function openAddAlert(prefillHkid, prefillName){
+    if(!can('addNote')) return;
+    openModal('<h3>新增警示戶</h3>' +
+      '<div class="form-row" style="grid-template-columns:1fr 1fr 1fr">' +
+        '<label><span class="k">身份證（必填）</span><input type="text" id="amlHkid" placeholder="例如 H5566778" autocomplete="off"></label>' +
+        '<label><span class="k">姓名</span><input type="text" id="amlName" maxlength="40" autocomplete="off"></label>' +
+        '<label><span class="k">日期</span><input type="date" id="amlDate"></label>' +
+      '</div>' +
+      '<div class="form-row" style="grid-template-columns:1fr 1fr">' +
+        '<label><span class="k">公司編號</span><input type="text" id="amlCode" value="本公司" maxlength="20"></label>' +
+        '<label><span class="k">警示類別</span><select id="amlKind">' + ALERT_KINDS.map(function(k){ return '<option>' + k + '</option>'; }).join('') + '</select></label>' +
+      '</div>' +
+      '<div class="form-row" style="grid-template-columns:1fr">' +
+        '<label><span class="k">原因（必填）</span><textarea id="amlContent" maxlength="200" placeholder="說明列為警示戶的原因…"></textarea></label>' +
+      '</div>' +
+      '<div class="hint" id="amlInfo"></div>' +
+      '<div class="banner alert" id="amlErr" style="display:none;margin:10px 0 0"></div>' +
+      '<div class="modal-foot"><button class="btn ghost" data-close>取消</button><button class="btn" id="amlSaveBtn">新增警示戶</button></div>');
+    document.getElementById('amlDate').value = todayStr();
+    document.getElementById('amlHkid').addEventListener('change', function(){
+      var hk = this.value.replace(/[()\s]/g, '').toUpperCase(), c = findCustomer(hk), info = document.getElementById('amlInfo');
+      if(c){ document.getElementById('amlName').value = c.name; info.textContent = '已帶入現有借款人姓名。'; }
+      else info.textContent = hk ? '此身份證目前不是借款人，仍可列為警示戶（預防性標註）。' : '';
+    });
+    if(prefillHkid){ document.getElementById('amlHkid').value = prefillHkid; document.getElementById('amlName').value = prefillName || ''; document.getElementById('amlInfo').textContent = '已帶入還款人資料，請選擇類別並填寫原因。'; document.getElementById('amlContent').focus(); }
+    document.getElementById('amlSaveBtn').addEventListener('click', saveAlert);
+  }
+  function saveAlert(){
+    if(!can('addNote')) return;
+    var err = document.getElementById('amlErr');
+    function fail(m){ err.textContent = m; err.style.display = ''; }
+    var code = document.getElementById('amlCode').value.replace(/[<>&"']/g, '').trim() || '本公司';
+    var hkid = document.getElementById('amlHkid').value.replace(/[()\s]/g, '').toUpperCase();
+    var name = document.getElementById('amlName').value.replace(/[<>&"']/g, '').trim();
+    var date = document.getElementById('amlDate').value || todayStr();
+    var kind = document.getElementById('amlKind').value;
+    var content = document.getElementById('amlContent').value.replace(/[<>]/g, '').trim();
+    if(!/^[A-Z]{1,2}[0-9]{6,7}$/.test(hkid)) return fail('身份證格式錯誤（例如 H5566778）');
+    if(!content) return fail('請填寫列為警示戶的原因');
+    function doAdd(){
+    if(!name){ var c = findCustomer(hkid); name = c ? c.name : '—'; }
+    state.aml.push({code: code, date: date, hkid: hkid, name: name, kind: kind, content: content, by: meName()});
+    var hasLoan = state.loans.filter(function(l){ return l.hkid === hkid && l.status !== '結清' && l.status !== '已拒絕'; }).length;
+    log('新增警示戶', maskId(hkid) + ' · ' + kind);
+    closeModal();
+    toast('已列為警示戶' + (hasLoan ? '；此借款人有 ' + hasLoan + ' 筆進行中的貸款，請留意' : ''));
+    renderAll();
+    }
+    if(state.aml.some(function(a){ return a.hkid === hkid && a.kind === kind; })) askDialog({title: '重複警示', msg: '此身份證已有相同類別的警示，仍要再新增一筆嗎？', okLabel: '仍要新增', onOk: doAdd});
+    else doAdd();
+  }
+  document.getElementById('amlAddOpenBtn').addEventListener('click', function(){ openAddAlert(); });
+
+  // ---------- repay ----------
+  function renderRepay(){
+    var rf = effFilter('repayCollectorFilter');
+    var rem = reminderList().filter(function(r){ return collectorMatch(collectorOf(r.loan), rf); });
+    document.getElementById('repayTableBody').innerHTML = rem.length ? rem.map(function(r){
+      return '<tr><td>' + r.loan.id + '</td><td>' + esc(r.loan.name) + alertMark(r.loan.hkid) + '</td><td>' + esc(collectorOf(r.loan) || '未指派') + '</td><td>第 ' + r.n.n + ' / ' + r.loan.term + ' 期</td><td>' + r.n.due + '</td><td>' + fmtMoney(r.n.left) + '</td>' +
+        '<td>' + (r.n.late ? '<span class="pill bad">忘繳 ' + r.n.days + ' 天</span>' + (r.lateCount > 1 ? ' <span class="hint">共 ' + r.lateCount + ' 期未繳</span>' : '') : '<span class="pill">將到期</span>') + '</td>' +
+        '<td>' + (can('addPayment') ? '<button class="btn ghost" data-payloan="' + r.loan.id + '">前往入帳</button> ' : '') + '<button class="btn ghost" data-mailloan="' + r.loan.id + '">發送郵件</button></td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty-note">目前沒有到期或忘繳的還款</td></tr>';
+  }
+  document.getElementById('repayCollectorFilter').addEventListener('change', renderRepay);
+  document.getElementById('repayTableBody').addEventListener('click', function(e){
+    var p = e.target.closest('[data-payloan]'); if(p){ goPayments(p.dataset.payloan); return; }
+    var m = e.target.closest('[data-mailloan]'); if(!m) return;
+    var l = state.loans.filter(function(x){ return x.id === m.dataset.mailloan; })[0];
+    if(l) openMail(l.id, loanSummary(l).lateCount ? '逾期通知' : '到期提醒');
+  });
+
+  // ---------- reset ----------
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    state = seedData();
+    txnSeq = 1;
+    selectedCust = null;
+    selectedPayCust = null; payFormOpen = false; expandedLoan = null;
+    lastResult = null;
+    expandedLoan = null;
+    document.getElementById('loanSearch').value = '';
+    document.getElementById('loanStatusFilter').value = '';
+    document.getElementById('creditHkid').value = '';
+    document.getElementById('creditConfirm').checked = false;
+    document.getElementById('creditResult').innerHTML = '';
+    applyRole();
+    renderAll();
+  });
+
+  function renderAll(){
+    refreshLoanStatuses();
+    refreshCollectorFilters();
+    renderDashboard();
+    renderLoans();
+    renderCustomers();
+    renderAml();
+    renderRepay();
+    renderCases();
+    renderPayments();
+    renderExports();
+    renderSettings();
+    renderGuide();
+    updateCreditMeta();
+  }
+
+  // ---------- login (demo accounts) ----------
+  var ACCOUNTS = [
+    {id:'approver01', pw:'demo1234', role:'approver', can:'新增貸款資料、查詢借款人與還款進度、審核申請並提交審批主管、確認放款、客戶收款入帳、申請匯出；身份證完整顯示；不能自行批核'},
+    {id:'supervisor01', pw:'demo1234', role:'supervisor', name:'王主管', can:'批核／拒絕／退回貸款申請、核准匯出與付款更正（不可核准自己的）'},
+    {id:'supervisor02', pw:'demo1234', role:'supervisor', name:'張主管', can:'第二位主管：用於多主管會簽（例如含完整身份證的匯出需 2 位）'},
+    {id:'company01',  pw:'demo1234', role:'company',  can:'使用者與角色、測試資料、付款入帳、放款、申請匯出'},
+    {id:'sysadmin01', pw:'demo1234', role:'sysadmin', can:'權限覆核、資料字典、稽核紀錄；不看借款人個資'}
+  ];
+  document.getElementById('acctBody').innerHTML = ACCOUNTS.map(function(a){
+    return '<tr class="clickable" data-acct="' + a.id + '"><td>' + a.id + '</td><td>' + ROLES[a.role] + '</td><td class="wrap">' + a.can + '</td></tr>';
+  }).join('');
+  document.getElementById('acctBody').addEventListener('click', function(e){
+    var tr = e.target.closest('[data-acct]'); if(!tr) return;
+    document.getElementById('loginId').value = tr.dataset.acct;
+    document.getElementById('loginPw').value = 'demo1234';
+  });
+  function doLogin(){
+    var id = document.getElementById('loginId').value.trim(), pw = document.getElementById('loginPw').value;
+    var acct = ACCOUNTS.filter(function(a){ return a.id === id && a.pw === pw; })[0];
+    var err = document.getElementById('loginErr');
+    if(!acct){
+      state.audit.unshift({time: stamp(), user: id || '（空白）', role: '—', action: '登入失敗', detail: ''});
+      err.textContent = '帳號或密碼錯誤'; err.style.display = ''; return;
+    }
+    err.style.display = 'none';
+    try{ sessionStorage.setItem('lms_user', acct.id); }catch(e){}
+    startSession(acct);
+  }
+  function startSession(acct){
+    role = acct.role; roleSel.value = role;
+    selectedPayCust = null; payFormOpen = false; expandedLoan = null;
+    if(acct.name) ME[acct.role] = acct.name;
+    log('登入', acct.id);
+    document.getElementById('loginScreen').classList.remove('open');
+    document.getElementById('loginPw').value = '';
+    lastResult = null;
+    document.getElementById('creditResult').innerHTML = '';
+    applyRole(); setView('dashboard'); renderAll(); applyDefaultCollectorFilter();
+  }
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('loginPw').addEventListener('keydown', function(e){ if(e.key === 'Enter') doLogin(); });
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    log('登出', ''); try{ sessionStorage.removeItem('lms_user'); }catch(e){}
+    lastResult = null; document.getElementById('creditResult').innerHTML = '';
+    document.getElementById('loginScreen').classList.add('open');
+  });
+  try{
+    var su = sessionStorage.getItem('lms_user');
+    var sa = ACCOUNTS.filter(function(a){ return a.id === su; })[0];
+    if(sa){ role = sa.role; roleSel.value = role; if(sa.name) ME[sa.role] = sa.name; document.getElementById('loginScreen').classList.remove('open'); }
+  }catch(e){}
+
+
+  var startView = 'dashboard';
+  try{ var saved = localStorage.getItem('lms_view'); if(saved) startView = saved; }catch(e){}
+  applyRole();
+  setView(startView);
+  renderAll();
+  applyDefaultCollectorFilter();
+})();
+</script>
