@@ -1,0 +1,752 @@
+<title>貸款管理系統規劃</title>
+<style>
+  :root {
+    --paper: #f5f7f6;
+    --surface: #ffffff;
+    --ink: #142320;
+    --muted: #55655f;
+    --line: #d9e1dd;
+    --accent: #0e6e5a;
+    --accent-ink: #ffffff;
+    --accent-soft: #dcece6;
+    --warn: #a85a12;
+    --warn-soft: #f5e6d4;
+    --mono-bg: #eef2f0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #101815;
+      --surface: #161f1c;
+      --ink: #edf4f1;
+      --muted: #9db0a8;
+      --line: #2a3733;
+      --accent: #4fd8b8;
+      --accent-ink: #0b1a16;
+      --accent-soft: #1c3a33;
+      --warn: #e2a15a;
+      --warn-soft: #3a2c1a;
+      --mono-bg: #1a2320;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #101815;
+    --surface: #161f1c;
+    --ink: #edf4f1;
+    --muted: #9db0a8;
+    --line: #2a3733;
+    --accent: #4fd8b8;
+    --accent-ink: #0b1a16;
+    --accent-soft: #1c3a33;
+    --warn: #e2a15a;
+    --warn-soft: #3a2c1a;
+    --mono-bg: #1a2320;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Noto Sans TC", -apple-system, sans-serif;
+    line-height: 1.7;
+    padding-inline: 20px;
+    padding-block: 40px;
+  }
+  .wrap {
+    max-width: 1040px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (max-width: 780px) {
+    .wrap { grid-template-columns: 1fr; }
+    nav.rail { display: none; }
+  }
+
+  nav.rail {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 8px;
+  }
+  nav.rail a {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    text-decoration: none;
+    padding-block: 4px;
+    border-left: 2px solid transparent;
+    padding-left: 12px;
+  }
+  nav.rail a:hover { color: var(--accent); border-left-color: var(--accent); }
+
+  header.doc {
+    padding-bottom: 28px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.25;
+    margin: 0 0 12px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .dek {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 60ch;
+    margin: 0 0 16px;
+  }
+  .meta {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .meta span b { color: var(--ink); font-weight: 500; }
+
+  section { margin-block: 52px; scroll-margin-top: 20px; }
+  section > h2 {
+    font-size: 12px;
+    font-family: "IBM Plex Mono", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 18px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  section > h2::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  section > p.lead {
+    max-width: 68ch;
+    color: var(--ink);
+    margin: 0 0 4px;
+  }
+
+  .modules { display: grid; gap: 16px; }
+  .module {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 24px;
+    display: grid;
+    grid-template-columns: 56px minmax(0,1fr);
+    gap: 18px;
+  }
+  @media (max-width: 560px) {
+    .module { grid-template-columns: 1fr; }
+    .module .num { flex-direction: row; gap: 8px; }
+  }
+  .module .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .module .num em {
+    font-style: normal;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+  }
+  .module h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+  }
+  .module .src {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+  .module ul {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+  }
+  .module ul li { font-size: 14.5px; }
+  .module ul li b { font-weight: 600; }
+
+  .subtable {
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  .subtable table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 420px;
+    font-size: 13px;
+  }
+  .subtable caption {
+    text-align: left;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 10px 14px 0;
+  }
+  .subtable th, .subtable td {
+    text-align: left;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .subtable thead th {
+    background: var(--mono-bg);
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 500;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .subtable tbody tr:last-child td { border-bottom: none; }
+
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 18px 0 8px;
+  }
+  .flow .pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 7px 14px;
+    border-radius: 999px;
+  }
+  .flow .arrow { color: var(--muted); font-size: 13px; }
+
+  .entities {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .entity {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: var(--surface);
+  }
+  .entity h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--accent);
+  }
+  .entity p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .checklist { display: grid; gap: 10px; margin-top: 8px; }
+  .check-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .check-item.priority { border-color: var(--warn); background: var(--warn-soft); }
+  .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+    height: fit-content;
+  }
+  .check-item.priority .tag { background: var(--warn); color: var(--accent-ink); }
+  .check-item p { margin: 0; font-size: 14px; }
+  .check-item b { display: block; margin-bottom: 2px; }
+
+  .arch { display: grid; gap: 14px; margin-top: 8px; }
+  .arch-item {
+    border-left: 3px solid var(--accent);
+    padding-left: 16px;
+  }
+  .arch-item h4 { margin: 0 0 4px; font-size: 14.5px; }
+  .arch-item p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  footer.doc {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+
+<div class="wrap">
+  <nav class="rail">
+    <a href="#overview">系統定位</a>
+    <a href="#mod01">01 · 導覽架構</a>
+    <a href="#mod02">02 · 貸款生命週期</a>
+    <a href="#mod03">03 · 信貸資料查詢</a>
+    <a href="#mod04">04 · AML 名單比對</a>
+    <a href="#mod05">05 · 財務／還款</a>
+    <a href="#mod06">06 · 角色與權限</a>
+    <a href="#mod07">07 · 查詢與授權</a>
+    <a href="#mod08">08 · 分析與審批</a>
+    <a href="#mod09">09 · 系統設定</a>
+    <a href="#mod10">10 · 主管簽核</a>
+    <a href="#mod11">11 · 客戶付款入帳</a>
+    <a href="#mod12">12 · 匯出</a>
+    <a href="#mod13">13 · 公開記錄</a>
+    <a href="#data-model">資料模型骨架</a>
+    <a href="#compliance">合規與安全</a>
+    <a href="#pending">待核准項目</a>
+    <a href="#arch">技術架構方向</a>
+  </nav>
+
+  <main>
+    <header class="doc">
+      <div class="eyebrow">System Plan · Loan Origination &amp; Credit Bureau Integration</div>
+      <h1>貸款管理系統規劃</h1>
+      <p class="dek">參考同業「ACMS 貸款管理系統」介面截圖，為自有系統整理的功能模組與設計建議。</p>
+      <div class="meta">
+        <span>日期　<b>2026-09-18</b></span>
+        <span>依據　<b>5 張系統截圖＋Credit Insight 使用者手冊 UM-CI-001（v0.1 草稿）</b></span>
+        <span>參照系統　<b>ACMS 貸款管理系統（Juncture Finance Limited）</b></span>
+      </div>
+    </header>
+
+    <section id="overview">
+      <h2>系統定位</h2>
+      <p class="lead">截圖顯示的是香港持牌放債人常用的一套貸款生命週期管理系統，整合了 TU（TransUnion）信貸資料查詢與內部 AML 名單比對。以此為藍本，規劃一套自有的貸款管理系統，涵蓋申請、批核、放款、還款與信貸覆核全流程。另納入 Credit Insight 使用者手冊的角色權限、客戶授權、信貸風險分析、審批佇列與系統管理流程（模組 06–13，含審批主管多主管簽核、客戶付款入帳、匯出、破產與法庭記錄），並已在 loan-system-demo.html（PC Web 原型）實作。本系統只有 PC 版，沒有手機版。</p>
+    </section>
+
+    <section id="mod01">
+      <h2>核心模組</h2>
+      <div class="modules">
+
+        <article class="module">
+          <div class="num"><em>01</em></div>
+          <div>
+            <h3>主選單／導覽架構</h3>
+            <p class="src">來源：ACMS 主選單、頂部導覽列</p>
+            <ul>
+              <li>頂層導覽：<b>首頁｜貸款｜批核｜放款｜還款｜TE/App｜報表｜設定｜系統</b></li>
+              <li>子系統內另分：檔案／編輯／外債查詢／業務管理／查詢及報表／系統設定／視窗</li>
+              <li>首頁快捷入口：還款提示、財務 TU 查詢、客戶付款、貸款記錄</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="module" id="mod02">
+          <div class="num"><em>02</em></div>
+          <div>
+            <h3>貸款生命週期管理</h3>
+            <p class="src">來源：「貸款 » 客戶貸款資料」列表頁</p>
+            <ul>
+              <li>同一客戶資料在 <b>申請／批核／放款</b> 三個階段頁籤間切換，狀態隨流程轉移</li>
+              <li>清單導覽：首／前／後／尾筆、關鍵字搜尋、進階搜尋</li>
+              <li>標準操作：新增／修改／刪除／複製／列印文件</li>
+            </ul>
+            <div class="flow">
+              <span class="pill">申請</span><span class="arrow">→</span>
+              <span class="pill">批核</span><span class="arrow">→</span>
+              <span class="pill">放款</span><span class="arrow">→</span>
+              <span class="pill">還款中</span><span class="arrow">→</span>
+              <span class="pill">結清／逾期</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module" id="mod03">
+          <div class="num"><em>03</em></div>
+          <div>
+            <h3>信貸資料查詢（TE / TU）</h3>
+            <p class="src">來源：TE/App 選單、信貸查詢視窗、TU 查詢結果頁</p>
+            <ul>
+              <li>入口帶待處理提示紅點（如「TE 提示 14」）</li>
+              <li>查詢輸入：香港身份證字號＋證件類型，回填中文名稱／英文名稱／出生日期／性別</li>
+              <li>系統統計：現時參加公司數、每日新增記錄數，反映聯徵資料庫規模</li>
+              <li>儲值／贈送點數機制，查詢按次扣費</li>
+              <li>身份證驗證流程，並可掃 QR Code 上傳至「TE Plus」行動端</li>
+            </ul>
+            <div class="subtable">
+              <table>
+                <caption>查詢紀錄</caption>
+                <thead><tr><th>公司編號</th><th>公司名稱</th><th>查詢日期</th><th>查詢時間</th></tr></thead>
+                <tbody><tr><td colspan="4" style="color:var(--muted)">— 誰查過這位客戶的軌跡 —</td></tr></tbody>
+              </table>
+            </div>
+            <div class="subtable">
+              <table>
+                <caption>外債資料</caption>
+                <thead><tr><th>公司編號</th><th>公司名稱</th><th>類別</th><th>貸款金額</th><th>貸款日期</th><th>期數</th><th>狀態</th><th>備註</th></tr></thead>
+                <tbody><tr><td colspan="8" style="color:var(--muted)">— 同業聯徵外部負債狀況 —</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <article class="module" id="mod04">
+          <div class="num"><em>04</em></div>
+          <div>
+            <h3>AML／合規名單比對</h3>
+            <p class="src">來源：信貸查詢結果頁「洗黑錢名單」連結與客戶注意事項</p>
+            <ul>
+              <li>「洗黑錢名單」比對入口，與信貸查詢流程並列</li>
+              <li>「客戶注意事項」清單：公司編號／日期／內容，供多間放債公司互相標註風險客戶</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="module" id="mod05">
+          <div class="num"><em>05</em></div>
+          <div>
+            <h3>財務／還款模組</h3>
+            <p class="src">來源：ACMS 首頁快捷區塊</p>
+            <ul>
+              <li>還款提示：到期／逾期客戶提醒</li>
+              <li>財務 TU 查詢：對已放款客戶的信貸狀況定期覆核</li>
+              <li>客戶付款：還款入帳作業</li>
+              <li>貸款記錄：歷史放款與還款總覽</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="module" id="mod06">
+          <div class="num"><em>06</em></div>
+          <div>
+            <h3>角色與權限</h3>
+            <p class="src">來源：Credit Insight 使用者手冊 UM-CI-001 第 2、7、8 節</p>
+            <ul>
+              <li>四種角色，導覽頁面依角色顯示；登入後須確認畫面右上角的公司／使用者／角色</li>
+              <li>身份證預設遮罩，僅審批人員可看完整號碼；系統管理員不查看客戶個資，只看系統事件</li>
+              <li>公司管理員權限屬高風險變更，需第二名管理者覆核；離職或轉分行須及時停用</li>
+            </ul>
+            <div class="subtable">
+              <table>
+                <caption>角色權限矩陣</caption>
+                <thead><tr><th>角色</th><th>可做</th><th>不可做</th></tr></thead>
+                <tbody>
+                  <tr><td>查詢人員</td><td>內部查詢、信貸摘要、確認授權</td><td>完整還款／逾期明細、改角色或額度</td></tr>
+                  <tr><td>審批人員</td><td>完整信貸資料、逾期、同業查詢；建立審批案件並提交主管；付款入帳；申請匯出</td><td>自行核准或拒絕案件；改費率、介接設定、他人權限</td></tr>
+                  <tr><td>審批主管</td><td>核准、拒絕、退回審批案件；核准匯出申請與付款更正；可設多位</td><td>核准自己建立的案件；改費率、介接設定</td></tr>
+                  <tr><td>公司管理員</td><td>使用者、角色、查詢額度、測試資料</td><td>繞過授權、改外部信貸結果</td></tr>
+                  <tr><td>系統管理員</td><td>介接、費率、資料字典、安全、稽核</td><td>任意查看不必要的客戶個資</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <article class="module" id="mod07">
+          <div class="num"><em>07</em></div>
+          <div>
+            <h3>客戶查詢與授權流程</h3>
+            <p class="src">來源：手冊第 5 節；補強模組 03</p>
+            <ul>
+              <li>兩種查詢模式：<b>內部／外債查詢</b>（免授權、免費）與 <b>TE 信貸資料</b>（需授權、按次扣費）</li>
+              <li>授權過期或不存在時，須重新授權：<b>列印授權書</b> 或 <b>TE Plus 上傳（QR Code）</b>，不得繞過</li>
+              <li>查詢前確認：對象正確、授權有效、額度足夠、費用已說明、符合業務目的</li>
+              <li>結果未返回前不可重複按查詢，防止重複扣款；服務逾時先查交易狀態再重試</li>
+              <li>結果部分缺失須標記，不可把空白解讀為零或沒有風險</li>
+            </ul>
+            <div class="flow">
+              <span class="pill">輸入 HKID</span><span class="arrow">→</span>
+              <span class="pill">授權檢查</span><span class="arrow">→</span>
+              <span class="pill">額度／費用確認</span><span class="arrow">→</span>
+              <span class="pill">查詢</span><span class="arrow">→</span>
+              <span class="pill">摘要／明細</span>
+            </div>
+            <div class="subtable">
+              <table>
+                <caption>錯誤情境處理</caption>
+                <thead><tr><th>情境</th><th>處理</th></tr></thead>
+                <tbody>
+                  <tr><td>身份證格式錯誤</td><td>修正輸入，不略過驗證</td></tr>
+                  <tr><td>找不到客戶</td><td>核對證件與公司範圍，不扣款，不反覆嘗試相似號碼</td></tr>
+                  <tr><td>授權已過期</td><td>重新啟動授權流程</td></tr>
+                  <tr><td>餘額不足</td><td>通知公司管理員</td></tr>
+                  <tr><td>服務逾時</td><td>記錄時間與訊息，先查交易狀態再決定是否重試</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <article class="module" id="mod08">
+          <div class="num"><em>08</em></div>
+          <div>
+            <h3>信貸分析與審批佇列</h3>
+            <p class="src">來源：手冊第 6 節</p>
+            <ul>
+              <li>信貸概覽（對照參考截圖「TE 記錄」頁）：申請／未處理／拒絕／客戶取消／成功放款（成功率）、上傳率（含截至日期）、未償還個數、尚欠本息、曾撤帳（撤帳率）與總額、逾期中／提交逾期次數、曾逾期還款期數、拖欠舉報次數，加上 <b>風險分數／等級</b>（僅輔助，不取代審批政策）</li>
+              <li>「最近被查詢次數」詳細視窗：總數（含間數）及各財務機構的今天／15 日內（demo 加 30 日內）次數</li>
+              <li>貸款明細展開後有逐筆上傳記錄：申請／批核／放款、逾期還款（N 日）、期數 x/n 與尚欠金額、完成；外債資料底部顯示合計</li>
+              <li>查詢頁另有分頁（TE 信貸資料／破產記錄／法庭案件／洗黑錢名單）、儲值／贈送餘額與收費紀錄、使用守則、客戶注意事項面板（可新增）；HKID 支援檢查碼括號格式如 A123456(7)</li>
+              <li><b>聯徵（同業）查詢次數</b>：今天／15 日／30 日的查詢次數直接顯示於信貸摘要（查詢人員亦可見），並計入風險分數（demo：30 日內每次扣 10 分）；3 家以上機構或 15 日內 3 次以上會觸發「短期多家查詢」警示</li>
+              <li>近期逾期詳情：曾轉逾期貸款數與金額，加上各財務機構今天／15 日／30 日查詢次數；短期多家查詢是核對訊號，非直接拒絕理由</li>
+              <li>完整還款表：逐期到期日、應還、實際還款日與金額，狀態分準時／逾期／部分付款／待付款</li>
+              <li><b>加入審批</b>：須先閱讀逾期詳情與還款表；系統產生案件編號；補備註後才可核准或拒絕</li>
+              <li>審批狀態：待處理／審閱中／待補資料／已核准／已拒絕（完整狀態待核准）</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="module" id="mod09">
+          <div class="num"><em>09</em></div>
+          <div>
+            <h3>系統設定與管理</h3>
+            <p class="src">來源：手冊第 7、8 節</p>
+            <ul>
+              <li><b>公司管理員</b>：使用者與角色、查詢額度與交易紀錄（不可直接改餘額）、測試客戶新增／重置（僅限測試環境）</li>
+              <li><b>系統管理員</b>：TE／TU 介接狀態（版本、最後同步、錯誤率）、權限覆核、資料字典（版本、申請人、核准人、生效時間、回滾）、安全與稽核</li>
+              <li>稽核事件：登入失敗、未授權查看、重複查詢／扣款、匯出列印、角色變更、外部服務逾時</li>
+              <li>資料保護：不得截圖轉發、不得用私人通訊工具傳送客戶資料、離座鎖屏；所有列印、匯出、授權及審批均被稽核</li>
+            </ul>
+          </div>
+        </article>
+
+
+        <article class="module" id="mod10">
+          <div class="num"><em>10</em></div>
+          <div>
+            <h3>審批主管與多主管簽核</h3>
+            <p class="src">來源：業務決定「審批都要主管角色」「多個審批主管」；PRD 第 4.2 節</p>
+            <ul>
+              <li>新增角色 <b>審批主管</b>：所有審批（案件、匯出、付款更正）一律由主管核准；審批人員只能建立並提交</li>
+              <li>案件狀態：待處理 → 審閱中 → 待補資料 → <b>待主管核准</b> → 已核准／已拒絕；主管可退回至審閱中</li>
+              <li>可設多位主管：提交時指定主管，可選「任一位核准即生效」或「全部指定主管會簽」；含完整身份證的匯出需 2 位主管會簽</li>
+              <li>建立人不可核准自己的案件；同一位主管不可重複核准；核准、拒絕、退回須填備註；逾時可提醒或轉交代理人</li>
+              <li>升為審批主管或公司管理員屬高風險變更，須由系統管理員覆核</li>
+              <li>會簽人數、金額門檻、代理人規則待核准（PRD #13）</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="module" id="mod11">
+          <div class="num"><em>11</em></div>
+          <div>
+            <h3>客戶付款入帳</h3>
+            <p class="src">來源：參考截圖首頁「客戶付款」；業務決定「都要」；PRD 第 4.6 節</p>
+            <ul>
+              <li>選擇貸款與期數，輸入付款日期、金額、付款方式（現金／轉帳／支票）與備註，入帳後自動更新還款進度、尚欠與貸款狀態（還清轉結清），並從還款提示移除</li>
+              <li>每筆入帳產生收據編號，可列印或匯出 PDF；重複入帳提示；金額不可超過尚欠</li>
+              <li>更正或撤銷須申請並由審批主管核准，原記錄保留並稽核</li>
+              <li>沖銷順序、多繳少繳、罰息、提前還款與一次清償規則待核准（PRD #14）</li>
+              <li>屬貸款管理功能，<b>待主管評估是否納入首版</b>（PRD #16）</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="module" id="mod12">
+          <div class="num"><em>12</em></div>
+          <div>
+            <h3>匯出</h3>
+            <p class="src">來源：業務決定「要匯出，格式先規劃」；PRD 第 4.5 節</p>
+            <ul>
+              <li>對象：貸款清單、還款與付款紀錄、審批案件、查詢與收費紀錄（公司管理員）、稽核紀錄（系統管理員）</li>
+              <li>格式（建議）：清單與明細用 Excel（另可選 CSV UTF-8），單據與報告（收據、案件摘要、TE 信貸報告）用 PDF</li>
+              <li>流程：申請（填用途）→ 審批主管核准 → 在有效期內下載一次 → 稽核；所有匯出一律需主管核准</li>
+              <li>個資：身份證預設遮罩；勾選完整身份證需 2 位主管會簽；檔案含浮水印（單號、匯出人、時間、用途）；不可匯出其他公司資料</li>
+              <li>下載有效期、筆數上限、可匯出欄位待核准（PRD #15）；<b>待主管評估是否納入首版</b>（PRD #16）</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="module" id="mod13">
+          <div class="num"><em>13</em></div>
+          <div>
+            <h3>破產記錄與法庭案件（公開記錄）</h3>
+            <p class="src">來源：參考截圖客戶查詢頁分頁「破產記錄」「法庭案件」；手冊待核准項目 #10</p>
+            <ul>
+              <li>查詢頁分頁之一，補上不易被一般查詢查到的公開記錄；僅審批人員、審批主管可看，查詢人員顯示鎖定說明</li>
+              <li>需先完成客戶查詢；破產記錄欄位：案件編號、法院、類型、日期、狀態、備註；法庭案件欄位：案件編號、法院、案件類別、日期、涉及金額、狀態、備註</li>
+              <li>每次查看寫入稽核；畫面提示「有記錄不代表直接拒絕」，須連同信貸摘要一併判斷</li>
+              <li>資料來源、更新頻率與正式操作方式待核准（PRD #10）；demo 為虛構示範資料</li>
+            </ul>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section id="data-model">
+      <h2>規劃建議 — 資料模型骨架</h2>
+      <p class="lead">以下十四個實體構成系統核心資料骨架，信貸查詢記錄與 AML 名單需獨立留存以利稽核。</p>
+      <div class="entities">
+        <div class="entity">
+          <h4>客戶主檔</h4>
+          <p>HKID、中英文姓名、出生日期、性別、聯絡方式</p>
+        </div>
+        <div class="entity">
+          <h4>貸款申請單</h4>
+          <p>狀態機驅動：申請→批核→放款→還款中→結清／逾期</p>
+        </div>
+        <div class="entity">
+          <h4>信貸查詢記錄</h4>
+          <p>誰查、何時查、查誰、回傳外債清單 — 獨立留存查詢軌跡</p>
+        </div>
+        <div class="entity">
+          <h4>AML／風險名單</h4>
+          <p>公司間共享注意事項，需設計存取權限與來源標註</p>
+        </div>
+        <div class="entity">
+          <h4>點數／計費帳戶</h4>
+          <p>信貸查詢按次扣費，與查詢記錄一一對應；交易含加值、扣款、退款，不可前端直接改餘額</p>
+        </div>
+        <div class="entity">
+          <h4>使用者／角色</h4>
+          <p>公司、分行、角色、啟用狀態；高風險變更含申請人與覆核人</p>
+        </div>
+        <div class="entity">
+          <h4>客戶授權</h4>
+          <p>授權方式（授權書／TE Plus）、有效期、狀態、撤銷紀錄</p>
+        </div>
+        <div class="entity">
+          <h4>審批案件</h4>
+          <p>案件編號、客戶、風險等級、備註、狀態、資料核對紀錄</p>
+        </div>
+        <div class="entity">
+          <h4>還款期數</h4>
+          <p>期數、到期日、應還金額、實際還款日與金額、狀態</p>
+        </div>
+        <div class="entity">
+          <h4>付款入帳與收據</h4>
+          <p>貸款、期數、日期、金額、付款方式、收據編號、狀態（正常／更正申請中／已撤銷）</p>
+        </div>
+        <div class="entity">
+          <h4>簽核紀錄</h4>
+          <p>案件／匯出／付款更正的指定主管、簽核方式、每位主管的決定、備註與時間</p>
+        </div>
+        <div class="entity">
+          <h4>匯出申請</h4>
+          <p>單號、對象、格式、用途、是否含完整身份證、所需核准人數、狀態、下載紀錄</p>
+        </div>
+        <div class="entity">
+          <h4>破產與法庭記錄</h4>
+          <p>案件編號、法院、類型／類別、日期、涉及金額、狀態，來源標註</p>
+        </div>
+        <div class="entity">
+          <h4>資料字典／介接設定</h4>
+          <p>版本化的狀態值、貸款類別、錯誤碼、角色代碼；服務狀態與費率</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="compliance">
+      <h2>規劃建議 — 合規與安全要點</h2>
+      <p class="lead">此類系統涉及信貸資料與個資，以下項目應優先於功能開發前定案。</p>
+      <div class="checklist">
+        <div class="check-item priority">
+          <span class="tag">優先</span>
+          <p><b>查詢稽核日誌</b>TU/信貸資料查詢須記錄誰、何時、查詢何人、查詢理由，保留供 PDPO／監管稽核，作為系統性設計而非事後補。</p>
+        </div>
+        <div class="check-item priority">
+          <span class="tag">優先</span>
+          <p><b>名單存取分級</b>洗黑錢名單的新增／查看權限需分級控管，避免未授權人員任意標註客戶。</p>
+        </div>
+        <div class="check-item">
+          <span class="tag">建議</span>
+          <p><b>敏感個資遮罩</b>身份證號碼、出生日期等欄位加密儲存，畫面呈現加上遮罩（現有截圖為明碼顯示）。</p>
+        </div>
+        <div class="check-item">
+          <span class="tag">建議</span>
+          <p><b>計費對帳機制</b>點數／計費紀錄與查詢記錄一一對應，方便財務定期對帳。</p>
+        </div>
+        <div class="check-item priority">
+          <span class="tag">優先</span>
+          <p><b>客戶授權管控</b>TE 查詢前必須有有效授權；授權書格式、有效期與撤銷方法需先定案，系統不得提供繞過授權的途徑。</p>
+        </div>
+        <div class="check-item priority">
+          <span class="tag">優先</span>
+          <p><b>主管簽核與匯出管控</b>所有審批一律由審批主管核准，建立人不可核准自己的項目；匯出須主管核准、遮罩身份證、加浮水印、下載一次性並稽核。</p>
+        </div>
+        <div class="check-item priority">
+          <span class="tag">優先</span>
+          <p><b>角色最小權限</b>查詢人員僅見摘要；完整逾期／還款明細限審批人員；系統管理員不查看客戶個資；高風險權限變更須第二人覆核。</p>
+        </div>
+        <div class="check-item">
+          <span class="tag">建議</span>
+          <p><b>防重複查詢扣款</b>查詢送出後鎖定按鈕、以交易編號冪等處理；逾時先查交易狀態，失敗交易依退款規則對帳。</p>
+        </div>
+        <div class="check-item">
+          <span class="tag">建議</span>
+          <p><b>測試與正式環境隔離</b>測試客戶與重置功能僅限測試環境，測試數字不得用於正式業務判斷；畫面須清楚標示環境。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pending">
+      <h2>待核准項目（上線前）</h2>
+      <p class="lead">手冊第 12 節列出的事項，須由產品、業務、法遵、技術與使用者代表共同確認；目前 demo 中的數字（如查詢費 HK$25）僅為示範。</p>
+      <div class="checklist">
+        <div class="check-item"><span class="tag">身份</span><p>正式登入方式、密碼政策、多因素驗證；角色建立／停用與權限申請流程；身份證驗證規則與支援證件類型。</p></div>
+        <div class="check-item"><span class="tag">介接</span><p>TE／TU 服務名稱、介接方式與錯誤處理；客戶授權書格式、有效期與撤銷方法。</p></div>
+        <div class="check-item"><span class="tag">計費</span><p>查詢費率、扣款時點、失敗退款與交易對帳流程。</p></div>
+        <div class="check-item"><span class="tag">風險</span><p>風險分數、等級與逾期指標的正式計算方法；審批佇列完整狀態與處理權限。</p></div>
+        <div class="check-item"><span class="tag">資料</span><p>個資遮罩、列印、匯出與稽核規則；資料保存、刪除、匿名化與備份政策；破產紀錄、法庭案件、洗黑錢名單頁面的操作方式。</p></div>
+        <div class="check-item"><span class="tag">簽核</span><p>主管人數、會簽人數與金額門檻、代理人與逾時處理（#13）；客戶付款入帳規則：付款方式、沖銷順序、多繳少繳、罰息、更正權限（#14）；匯出規則：格式與欄位、筆數上限、下載有效期、浮水印、保存期限（#15）。</p></div>
+        <div class="check-item priority"><span class="tag">待評估</span><p><b>首版範圍（#16）</b>客戶付款入帳、匯出、多位主管會簽是否納入首版，或排到第二階段，由主管評估；目前全部列入規劃。</p></div>
+        <div class="check-item"><span class="tag">營運</span><p>正式客服、問題通報與服務中斷處理流程。</p></div>
+      </div>
+    </section>
+
+    <section id="arch">
+      <h2>規劃建議 — 技術架構方向</h2>
+      <div class="arch">
+        <div class="arch-item">
+          <h4>沿用熟悉的操作模式</h4>
+          <p>前端維持「多頁籤導覽＋清單／明細」的介面慣性，放債業從業人員熟悉此操作方式，可降低教育訓練成本。</p>
+        </div>
+        <div class="arch-item">
+          <h4>信貸介接獨立封裝</h4>
+          <p>後端與 TU／TransUnion 或本地信貸資料機構的介接以獨立服務封裝，避免查詢邏輯與業務邏輯耦合，方便日後更換供應商。</p>
+        </div>
+        <div class="arch-item">
+          <h4>稽核日誌為一等公民</h4>
+          <p>audit log 獨立於業務表設計，而非以事件通知或日後補記方式實作，確保查詢與名單異動皆可追溯。</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="doc">
+      整理依據：專案資料夾內的參考截圖 1.png–6.png（含 TE 記錄詳細頁）；原 5 張 WhatsApp 截圖（ACMS 貸款管理系統，Juncture Finance Limited）；Credit Insight 信貸與外債查詢工作台使用者手冊 UM-CI-001 v0.1 草稿（模組 06–09、待核准項目）。
+    </footer>
+  </main>
+</div>
