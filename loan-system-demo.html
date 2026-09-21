@@ -979,8 +979,11 @@
   }
   // 同業查詢每次扣 10 分（30 日內）；分數 >=700 低、>=600 中、其餘高
   function riskOf(rec){
-    var q = enqTotals(rec), score = rec.risk.score - 10 * q.d30;
-    return {score: score, base: rec.risk.score, penalty: 10 * q.d30, level: score >= 700 ? "低" : (score >= 600 ? "中" : "高"), q: q,
+    var q = enqTotals(rec), pub = 0, activeBk = false;
+    (rec.bankrupt || []).forEach(function(b){ if(b.status === "已完成") pub += 50; else { pub += 150; activeBk = true; } });
+    (rec.court || []).forEach(function(c){ pub += c.status === "已結案" ? 20 : 60; });
+    var score = rec.risk.score - 10 * q.d30 - pub;
+    return {score: score, base: rec.risk.score, penalty: 10 * q.d30, pub: pub, level: (activeBk || score < 600) ? "高" : (score >= 700 ? "低" : "中"), q: q,
       multi: rec.enq.filter(function(e){ return e.d30 > 0; }).length >= 3 || q.d15 >= 3};
   }
   function levelCls(l){ return l === '低' ? 'ok' : (l === '中' ? 'warn' : 'bad'); }
@@ -1035,7 +1038,7 @@
     alt.innerHTML = '<p class="meta-line">客戶：<b>' + esc(rec.nameZh) + '</b>（' + maskId(lastResult.hkid) + '）· 來源：公開記錄（示範資料，正式資料來源與操作方式待核准 #10）</p>' +
       '<div class="table-wrap"><table><thead><tr>' + cfg.head.map(function(x){ return '<th>' + x + '</th>'; }).join('') + '</tr></thead><tbody>' +
       (rows.length ? rows.map(function(r){ return '<tr>' + cfg.row(r).map(function(v){ return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + cfg.head.length + '" class="empty-note">查無' + cfg.title + '</td></tr>') +
-      '</tbody></table></div><div class="hint">有記錄不代表直接拒絕；請連同信貸摘要、逾期與還款明細一併判斷，並依正式審批政策處理。</div>';
+      '</tbody></table></div><div class="hint">有記錄不代表直接拒絕；已計入風險分數（暫定：破產進行中 −150、已完成 −50；法庭案件審理中 −60、已結案 −20，破產進行中一律列為高風險，規則待核准 #7）。請連同信貸摘要、逾期與還款明細一併判斷，並依正式審批政策處理。</div>';
   }
   document.getElementById('creditMode').addEventListener('change', updateCreditMeta);
 
@@ -1188,7 +1191,7 @@
       var rk = rec.risk, rs = riskOf(rec), st = statsOf(rec, unpaid);
       html += '<div class="caption">授權與風險摘要 · 來源：TE（示範）</div>' +
         '<p class="meta-line">授權狀態：<span class="pill ok">授權訊息生效中</span> 有效至 <b>' + rec.auth.expiry + '</b> · 風險分數僅作輔助，不取代正式審批政策</p>' +
-        '<div class="risk-row"><div class="risk-score"><div class="n">' + rs.score + '</div><div class="l">風險分數 · <span class="pill ' + levelCls(rs.level) + '">' + rs.level + '風險</span></div><div class="hint">基礎 ' + rs.base + ' − 同業查詢 ' + rs.penalty + '</div></div>' +
+        '<div class="risk-row"><div class="risk-score"><div class="n">' + rs.score + '</div><div class="l">風險分數 · <span class="pill ' + levelCls(rs.level) + '">' + rs.level + '風險</span></div><div class="hint">基礎 ' + rs.base + ' − 同業查詢 ' + rs.penalty + ' − 公開記錄 ' + rs.pub + '</div></div>' +
         '<div class="kv-grid">' +
           kv('申請', st.apps) + kv('未處理', st.pending) + kv('拒絕', st.rejected) + kv('客戶取消', st.cancel) +
           kv('成功放款(成功率)', st.funded + ' (' + st.rate + ')') + kv('上傳率', rk.upload + ' <span class="hint">截至 ' + todayStr() + '</span>') +
@@ -1199,7 +1202,8 @@
           kv('逾期金額', fmtMoney(rk.overdueAmt)) + kv('拖欠舉報次數', 0) +
           kv('最近被查詢次數', rs.q.today + ' ／ ' + rs.q.d15 + ' ／ ' + rs.q.d30 + ' <button class="btn ghost" id="btnEnq" style="padding:1px 8px;font-size:12px">詳細</button><div class="hint">今天／15日內／30日內</div>') +
         '</div>' +
-        (rs.multi ? '<div class="banner warn"><span>⚠</span><div><span class="b-title">短期內多家機構查詢</span>屬需進一步核對的風險訊號，已計入風險分數；不應直接視為拒絕理由。</div></div>' : '');
+        (rs.multi ? '<div class="banner warn"><span>⚠</span><div><span class="b-title">短期內多家機構查詢</span>屬需進一步核對的風險訊號，已計入風險分數；不應直接視為拒絕理由。</div></div>' : '') +
+        (rs.pub ? '<div class="banner warn"><span>⚠</span><div><span class="b-title">有破產記錄或法庭案件</span>已計入風險分數（扣 ' + rs.pub + ' 分）；請到「破產記錄」「法庭案件」分頁核對，有記錄不代表直接拒絕。</div></div>' : '');
       var perm = can('seeDetail');
       html += '<div class="detail-actions">' +
         '<button class="btn ghost" id="btnOverdue"' + (perm ? '' : ' disabled') + '>查看近期逾期詳情</button>' +
