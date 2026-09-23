@@ -819,7 +819,7 @@
     bindSearchToolbar('notify', state.notifyQuery, true);
   }
 
-  // ---------- 匯出（模擬）：CSV／Excel（簡易 .xls）／PDF（列印預覽） ----------
+  // ---------- 匯出：Excel（真正的 .xlsx）／PDF（列印預覽） ----------
   function getExportData(kind){
     if(kind==='borrower'){
       var blist = filteredBorrowers();
@@ -858,26 +858,13 @@
   function doExport(kind, fmt){
     var d = getExportData(kind);
     if(!d.rows.length){ toast('沒有可匯出的資料'); return; }
-    if(fmt==='csv') exportCSV(d.title+'_'+todayStr()+'.csv', d.headers, d.rows);
-    else if(fmt==='xlsx') exportExcel(d.title+'_'+todayStr()+'.xlsx', d.headers, d.rows);
+    if(fmt==='xlsx') exportExcel(d.title+'_'+todayStr()+'.xlsx', d.headers, d.rows);
     else if(fmt==='pdf') exportPDF(d.title, d.headers, d.rows);
   }
   function renderExportGroup(kind){
     return '<span class="hint" style="margin-right:2px;">匯出：</span>' +
-      '<button class="btn small ghost" data-export="'+kind+'" data-fmt="csv">CSV</button>' +
       '<button class="btn small ghost" data-export="'+kind+'" data-fmt="xlsx">Excel</button>' +
       '<button class="btn small ghost" data-export="'+kind+'" data-fmt="pdf">PDF</button>';
-  }
-  function exportCSV(filename, headers, rows){
-    var esc2 = function(v){ v = (v===undefined||v===null) ? '' : String(v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
-    var csv = headers.map(esc2).join(',') + '\r\n' + rows.map(function(r){ return r.map(esc2).join(','); }).join('\r\n');
-    var blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8;'});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast('已匯出：'+filename);
   }
   // ---- 純前端產生真正的 .xlsx（OOXML／ZIP，store 不壓縮＋CRC32，不依賴任何函式庫） ----
   var CRC_TABLE = (function(){
