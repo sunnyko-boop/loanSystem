@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>簡易放貸管理系統（原型）</title>
+<style>
+  :root {
+    --paper: #f5f7f6;
+    --surface: #ffffff;
+    --surface-2: #eef2f0;
+    --ink: #142320;
+    --muted: #55655f;
+    --line: #d9e1dd;
+    --accent: #0e6e5a;
+    --accent-ink: #ffffff;
+    --accent-soft: #dcece6;
+    --warn: #a85a12;
+    --warn-soft: #f5e6d4;
+    --danger: #b23a2f;
+    --danger-soft: #f6ded9;
+    --neutral-soft: #e6e9e7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0f1613;
+      --surface: #161f1c;
+      --surface-2: #1c2723;
+      --ink: #edf4f1;
+      --muted: #97aaa2;
+      --line: #2a3733;
+      --accent: #4fd8b8;
+      --accent-ink: #0b1a16;
+      --accent-soft: #1c3a33;
+      --warn: #e2a15a;
+      --warn-soft: #3a2c1a;
+      --danger: #e2857a;
+      --danger-soft: #3c211e;
+      --neutral-soft: #26302c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f1613;
+    --surface: #161f1c;
+    --surface-2: #1c2723;
+    --ink: #edf4f1;
+    --muted: #97aaa2;
+    --line: #2a3733;
+    --accent: #4fd8b8;
+    --accent-ink: #0b1a16;
+    --accent-soft: #1c3a33;
+    --warn: #e2a15a;
+    --warn-soft: #3a2c1a;
+    --danger: #e2857a;
+    --danger-soft: #3c211e;
+    --neutral-soft: #26302c;
+  }
+
+  * { box-sizing: border-box; }
+  /* 僅提供 PC Web 版本：固定桌面版面，不做手機響應式 */
+  body {
+    margin: 0;
+    min-width: 1280px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Noto Sans TC", -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app { display: grid; grid-template-columns: 216px minmax(0,1fr); min-height: 100vh; }
+
+  .sidebar {
+    background: var(--surface); border-right: 1px solid var(--line);
+    padding: 18px 14px; display: flex; flex-direction: column; gap: 4px;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .brand { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); padding: 6px 10px 18px; }
+  .brand b { display: block; color: var(--ink); font-size: 15px; font-family: "IBM Plex Sans","Noto Sans TC",sans-serif; margin-top: 2px; }
+
+  nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; background: transparent; border: none; text-align: left; padding: 10px 12px; border-radius: 8px; color: var(--muted); font-size: 13.5px; font-weight: 500; width: 100%; }
+  .nav-item .ic { font-size: 15px; }
+  .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+  .nav-item .badge { margin-left: auto; background: var(--danger); color: white; font-size: 10.5px; font-family: "IBM Plex Mono", monospace; padding: 1px 6px; border-radius: 999px; min-width: 16px; text-align: center; display: none; }
+  .nav-item .badge.on { display: inline-block; }
+
+  .sidebar-foot { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--muted); padding: 10px; border-top: 1px solid var(--line); }
+
+  .main { padding: 22px 26px 60px; min-width: 0; }
+
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .demo-badge { font-family: "IBM Plex Mono", monospace; font-size: 11px; background: var(--warn-soft); color: var(--warn); padding: 3px 9px; border-radius: 999px; }
+
+  .identity { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: auto; font-size: 12px; color: var(--muted); }
+  .identity .chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+  .identity select { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 4px 8px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 26px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .stat .n { font-family: "IBM Plex Mono", monospace; font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat.alert .n { color: var(--danger); }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; margin-bottom: 20px; }
+  .panel h2 { font-size: 13px; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 14px; }
+  .detail-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
+  .detail-head h2 { margin: 0; }
+
+  .toolbar { display: flex; gap: 22px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+  .toolbar .tb-field { display: flex; align-items: center; gap: 10px; }
+  .toolbar .tb-field .k { font-size: 14px; color: var(--muted); font-family: "IBM Plex Mono", monospace; white-space: nowrap; }
+  .toolbar .tb-field input { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; font-size: 15px; min-width: 220px; }
+  .toolbar .tb-field.date-field input { min-width: 160px; }
+  .toolbar .tb-actions { display: flex; gap: 10px; align-items: center; }
+  .toolbar .tb-actions .btn { padding: 12px 22px; font-size: 15px; }
+  .tb-sep { color: var(--muted); font-size: 14px; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .table-wrap { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; overflow-x: auto; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  thead th { background: var(--surface-2); font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.clickable:hover { background: var(--surface-2); cursor: pointer; }
+  .empty-state { padding: 30px 10px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--neutral-soft); color: var(--muted); }
+  .pill[data-status="申請中"] { background: var(--warn-soft); color: var(--warn); }
+  .pill[data-status="已核准"] { background: var(--accent-soft); color: var(--accent); }
+  .pill[data-status="放款中"], .pill[data-status="已還款"], .pill[data-status="正常"] { background: var(--accent-soft); color: var(--accent); }
+  .pill[data-status="逾期"], .pill[data-status="已拒絕"], .pill[data-status="黑名單"] { background: var(--danger-soft); color: var(--danger); }
+  .pill[data-status="未繳"] { background: var(--neutral-soft); color: var(--muted); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--danger-soft); color: var(--danger); margin-left: 4px; }
+
+  .detail-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin-bottom: 14px; }
+  .detail-fields > div { min-width: 0; overflow-wrap: anywhere; }
+  .detail-fields .k { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", monospace; display: block; }
+  .detail-fields .v { font-size: 14px; margin-top: 2px; }
+
+  .btn { background: var(--accent); color: var(--accent-ink); border: none; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+  .btn.danger { background: var(--danger); color: white; }
+  .btn.small { padding: 4px 10px; font-size: 12px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 14px; }
+  .form-row.one { grid-template-columns: 1fr; }
+  .form-row label { display: block; }
+  .form-row .k { display: block; font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 5px; }
+  .form-row input, .form-row select, .form-row textarea { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 9px 12px; }
+  .form-row textarea { resize: vertical; min-height: 60px; }
+
+  .banner { padding: 12px 16px; border-radius: 8px; font-size: 13.5px; display: flex; gap: 10px; align-items: flex-start; margin-bottom: 16px; }
+  .banner.alert { background: var(--danger-soft); color: var(--danger); }
+  .banner.ok { background: var(--accent-soft); color: var(--accent); }
+  .banner.warn { background: var(--warn-soft); color: var(--warn); }
+  .banner .b-title { font-weight: 600; display: block; margin-bottom: 2px; }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 30px; z-index: 50; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 28px 32px; width: min(680px, 94vw); max-height: 90vh; overflow: auto; font-size: 15px; }
+  .modal.wide { width: min(1500px, 94vw); }
+  .modal .detail-head h2, .modal h2 { margin: 0; font-size: 21px; font-family: "IBM Plex Sans","Noto Sans TC",sans-serif; text-transform: none; letter-spacing: normal; color: var(--ink); }
+  .modal .btn { font-size: 14px; padding: 9px 18px; }
+  .modal .btn.small { font-size: 13px; padding: 6px 13px; }
+  .modal .detail-fields { font-size: 15.5px; }
+  .modal .detail-fields .k { font-size: 12.5px; }
+  .modal table { font-size: 14.5px; }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 9px 18px; border-radius: 8px; font-size: 13px; z-index: 60; display: none; }
+
+  .app.hidden { display: none; }
+  .login-screen { position: fixed; inset: 0; background: var(--paper); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .login-screen.hidden { display: none; }
+  .login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 40px 44px; width: 400px; box-shadow: 0 12px 34px rgba(0,0,0,.10); }
+  .login-brand { font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: 0.04em; color: var(--muted); }
+  .login-brand b { display: block; font-family: "IBM Plex Sans","Noto Sans TC",sans-serif; font-size: 22px; color: var(--ink); margin-top: 4px; }
+  .login-sub { font-size: 13px; color: var(--muted); margin: 8px 0 24px; }
+  .login-card .lf { display: block; margin-bottom: 16px; }
+  .login-card .lf .k { display: block; font-size: 12px; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 6px; }
+  .login-card select, .login-card input { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 14.5px; color: var(--ink); }
+  .login-card .btn { width: 100%; padding: 11px; font-size: 15px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">LOAN-OPS<b>簡易放貸系統</b></div>
+    <div class="login-sub">測試環境登入</div>
+    <label class="lf"><span class="k">登入帳號</span>
+      <select id="loginRole"></select>
+    </label>
+    <label class="lf"><span class="k">密碼</span><input type="password" id="loginPwd" placeholder="demo1234"></label>
+    <button class="btn" id="loginBtn">登入</button>
+    <div class="hint">示範環境，密碼輸入任意值即可登入（提示：demo1234）</div>
+  </div>
+</div>
+<div class="app hidden" id="app">
+  <div class="sidebar">
+    <div class="brand">LOAN-OPS<b>簡易放貸系統</b></div>
+    <nav>
+      <button class="nav-item active" data-view="dashboard"><span class="ic">🏠</span>首頁</button>
+      <button class="nav-item" data-view="borrowers"><span class="ic">👤</span>借款人</button>
+      <button class="nav-item" data-view="loans"><span class="ic">📋</span>借款單</button>
+      <button class="nav-item" data-view="approvals"><span class="ic">✅</span>核貸審核<span class="badge" id="apprBadge">0</span></button>
+      <button class="nav-item" data-view="notify"><span class="ic">✉️</span>通知紀錄</button>
+      <button class="nav-item" data-view="accounts"><span class="ic">🔑</span>帳號管理</button>
+    </nav>
+    <div class="sidebar-foot">v0.3 · 原型示範 · 無後端</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">首頁</h1>
+      <span class="demo-badge">測試環境</span>
+      <div class="identity">
+        <span class="chip" id="whoChip"></span>
+        <select id="roleSel"></select>
+        <button class="btn ghost small" id="logoutBtn">登出</button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal-backdrop" id="modalBg"><div class="modal" id="modalBox"></div></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- 共用工具 ----------
+  function esc(s){ s = (s===undefined||s===null) ? '' : String(s); return s.replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fmtMoney(n){ n = Number(n)||0; return 'HK$' + n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function addDays(dateStr, days){ var d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function daysBetween(a,b){ return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00'))/86400000); }
+  function uid(prefix){ state.seq++; return prefix + '-' + (1000+state.seq); }
+  var toastTimer;
+  function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.style.display='none'; }, 2600); }
+  function val(id){ var el=document.getElementById(id); return el ? el.value : ''; }
+
+  var modalState = null; // {type:'borrower'|'loan', id: '...'} — 記住目前彈窗顯示的是誰，方便子動作後刷新回原本畫面
+  function closeModal(){ document.getElementById('modalBg').classList.remove('open'); document.getElementById('modalBox').innerHTML=''; modalState=null; }
+  function openModal(html, wide){
+    var box = document.getElementById('modalBox');
+    box.className = 'modal' + (wide ? ' wide' : '');
+    box.innerHTML = html;
+    document.getElementById('modalBg').classList.add('open');
+  }
+  function refreshModal(){
+    if(!modalState) return;
+    if(modalState.type==='borrower'){
+      var b = findBorrower(modalState.id);
+      if(!b){ closeModal(); return; }
+      openModal(renderBorrowerDetailContent(b), true);
+    } else if(modalState.type==='loan'){
+      var l = findLoan(modalState.id);
+      if(!l){ closeModal(); return; }
+      openModal(renderLoanDetailContent(l), true);
+    }
+    bindDynamicEvents(document.getElementById('modalBox'));
+  }
+  document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target.id==='modalBg') closeModal(); });
+
+  function openBorrowerDetail(id){
+    modalState = {type:'borrower', id:id};
+    openModal(renderBorrowerDetailContent(findBorrower(id)), true);
+    bindDynamicEvents(document.getElementById('modalBox'));
+  }
+  function openLoanDetail(id){
+    modalState = {type:'loan', id:id};
+    openModal(renderLoanDetailContent(findLoan(id)), true);
+    bindDynamicEvents(document.getElementById('modalBox'));
+  }
+
+  // ---------- 資料 ----------
+  var state = {
+    seq: 0,
+    role: 'officer',
+    currentUserId: 'U-1001',
+    view: 'dashboard',
+    users: [
+      {id:'U-1001', name:'王小明', role:'officer', active:true},
+      {id:'U-1002', name:'陳主管', role:'supervisor', active:true},
+      {id:'U-1003', name:'周志成', role:'sysadmin', active:true}
+    ],
+    borrowerQuery: {name:'', idNumber:'', dateFrom:'', dateTo:''},
+    loanQuery: {name:'', idNumber:'', dateFrom:'', dateTo:''},
+    apprQuery: {name:'', idNumber:'', dateFrom:'', dateTo:''},
+    notifyQuery: {name:'', idNumber:'', dateFrom:'', dateTo:''},
+    borrowers: [
+      {id:'C-1001', name:'陳大文', idNumber:'A1234567', phone:'91234567', email:'chan.taiman@example.com', address:'九龍旺角彌敦道100號5樓',
+       collectMethod:'轉帳', bankInfo:'HSBC 123-456789-001', collector:'', blacklist:false, blacklistNote:'', createdDate:'2026-03-12', notes:[]},
+      {id:'C-1002', name:'李小明', idNumber:'B7654321', phone:'92345678', email:'lee.siuming@example.com', address:'新界沙田大圍道20號12樓',
+       collectMethod:'人員收帳', bankInfo:'', collector:'張師傅', blacklist:false, blacklistNote:'', createdDate:'2026-05-02',
+       notes:[{date:'2026-06-10', text:'客人表示這期較忙，已改約下週三上門收數。', by:'張師傅'}]},
+      {id:'C-1003', name:'黃美玲', idNumber:'C2468135', phone:'93456789', email:'wong.meiling@example.com', address:'港島北角英皇道300號8樓',
+       collectMethod:'轉帳', bankInfo:'BOC 987-654321-002', collector:'', blacklist:false, blacklistNote:'', createdDate:'2026-07-20', notes:[]},
+      {id:'C-1004', name:'林淑芬', idNumber:'E1357924', phone:'95678901', email:'lam.shukfan@example.com', address:'新界屯門青山公路88號10樓',
+       collectMethod:'人員收帳', bankInfo:'', collector:'張師傅', blacklist:true, blacklistNote:'2026-06 拖數失聯，多次上門無人應門', createdDate:'2026-01-30',
+       notes:[{date:'2026-05-20', text:'客人已3條數到期未供，一直追緊。', by:'張師傅'},{date:'2026-06-05', text:'拖數失聯，多次上門無人應門，列入黑名單。', by:'張師傅'}]}
+    ],
+    loans: [],
+    notifications: []
+  };
+
+  function findUser(id){ return state.users.filter(function(u){ return u.id===id; })[0]; }
+  function currentUser(){ return findUser(state.currentUserId); }
+  function findBorrower(id){ return state.borrowers.filter(function(b){ return b.id===id; })[0]; }
+  function findLoan(id){ return state.loans.filter(function(l){ return l.id===id; })[0]; }
+  function borrowerLoans(bid){ return state.loans.filter(function(l){ return l.borrowerId===bid; }); }
+  function latestLoanOf(bid){
+    var ls = borrowerLoans(bid);
+    return ls.length ? ls[ls.length-1] : null;
+  }
+  // 模糊查詢：姓名／身分證各自獨立比對（部分符合即算命中），非精確比對
+  function matchBorrowerFields(b, nameQ, idQ){
+    if(!b) return false;
+    var okName = !nameQ || b.name.indexOf(nameQ) > -1;
+    var okId = !idQ || (b.idNumber||'').toUpperCase().indexOf(idQ.toUpperCase()) > -1;
+    return okName && okId;
+  }
+  function inDateRange(dateStr, from, to){
+    if(from && dateStr < from) return false;
+    if(to && dateStr > to) return false;
+    return true;
+  }
+  function filteredBorrowers(){
+    var q = state.borrowerQuery, nameQ = (q.name||'').trim(), idQ = (q.idNumber||'').trim();
+    var list = state.borrowers;
+    if(nameQ || idQ) list = list.filter(function(b){ return matchBorrowerFields(b, nameQ, idQ); });
+    if(q.dateFrom || q.dateTo) list = list.filter(function(b){ return inDateRange(b.createdDate, q.dateFrom, q.dateTo); });
+    return list;
+  }
+  function filteredLoans(baseList, query){
+    var list = baseList, nameQ = (query.name||'').trim(), idQ = (query.idNumber||'').trim();
+    if(nameQ || idQ) list = list.filter(function(l){ return matchBorrowerFields(findBorrower(l.borrowerId), nameQ, idQ); });
+    if(query.dateFrom || query.dateTo) list = list.filter(function(l){ return inDateRange(l.applyDate, query.dateFrom, query.dateTo); });
+    return list;
+  }
+  function filteredNotifications(){
+    var list = state.notifications, q = state.notifyQuery, nameQ = (q.name||'').trim(), idQ = (q.idNumber||'').trim();
+    if(nameQ || idQ) list = list.filter(function(n){ return matchBorrowerFields(findBorrower(n.borrowerId), nameQ, idQ); });
+    if(q.dateFrom || q.dateTo) list = list.filter(function(n){ return inDateRange(n.time.slice(0,10), q.dateFrom, q.dateTo); });
+    return list;
+  }
+  function hasQueryValue(query){
+    return (query.name && query.name.trim()) || (query.idNumber && query.idNumber.trim()) || query.dateFrom || query.dateTo;
+  }
+  function renderSearchToolbar(prefix, query, withDate){
+    var dateLabel = prefix==='borrower' ? '建立日期' : (prefix==='notify' ? '通知日期' : '申請日期');
+    var html = '<div class="toolbar">' +
+      '<label class="tb-field"><span class="k">姓名</span><input type="text" id="'+prefix+'Name" placeholder="輸入姓名關鍵字" value="'+esc(query.name||'')+'"></label>' +
+      '<label class="tb-field"><span class="k">身分證</span><input type="text" id="'+prefix+'Id" placeholder="輸入身分證關鍵字" value="'+esc(query.idNumber||'')+'"></label>';
+    if(withDate){
+      html += '<label class="tb-field date-field"><span class="k">'+dateLabel+'（起）</span><input type="date" id="'+prefix+'DateFrom" value="'+esc(query.dateFrom||'')+'"></label>' +
+        '<span class="tb-sep">至</span>' +
+        '<label class="tb-field date-field"><span class="k">'+dateLabel+'（迄）</span><input type="date" id="'+prefix+'DateTo" value="'+esc(query.dateTo||'')+'"></label>';
+    }
+    html += '<div class="tb-actions"><button class="btn ghost" id="'+prefix+'SearchBtn">查詢</button>';
+    if(hasQueryValue(query)) html += '<button class="btn ghost" id="'+prefix+'ClearBtn">清除</button>';
+    html += '</div></div>';
+    return html;
+  }
+  function bindSearchToolbar(prefix, query, withDate){
+    function run(){
+      query.name = val(prefix+'Name').trim();
+      query.idNumber = val(prefix+'Id').trim();
+      if(withDate){ query.dateFrom = val(prefix+'DateFrom'); query.dateTo = val(prefix+'DateTo'); }
+      renderAll();
+    }
+    var btn = document.getElementById(prefix+'SearchBtn'); if(btn) btn.addEventListener('click', run);
+    ['Name','Id','DateFrom','DateTo'].forEach(function(suffix){
+      var input = document.getElementById(prefix+suffix);
+      if(input) input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); run(); } });
+    });
+    var clearBtn = document.getElementById(prefix+'ClearBtn');
+    if(clearBtn) clearBtn.addEventListener('click', function(){ query.name=''; query.idNumber=''; query.dateFrom=''; query.dateTo=''; renderAll(); });
+  }
+
+  function buildSchedule(amount, term, rate, startDate){
+    var total = amount * (1 + rate/100);
+    var per = Math.round(total/term);
+    var rows = [];
+    for(var i=1;i<=term;i++){
+      var due = addDays(startDate, i*30);
+      var due_amt = (i===term) ? (total - per*(term-1)) : per;
+      rows.push({n:i, due:due, amount:Math.round(due_amt), paid:0, status:'未繳'});
+    }
+    return rows;
+  }
+
+  function seedLoan(borrowerId, amount, term, rate, status, createdBy, approvedBy, note, daysAgo, branch){
+    var apply = addDays(todayStr(), -daysAgo);
+    var loan = {
+      id: uid('L'), borrowerId: borrowerId, amount: amount, term: term, rate: rate,
+      applyDate: apply, status: status, createdBy: createdBy, approvedBy: approvedBy || '',
+      approveNote: note || '', collectMethod: findBorrower(borrowerId).collectMethod,
+      branch: branch || '', remarks: '', schedule: []
+    };
+    if(status === '放款中' || status === '已還款' || status === '逾期'){
+      loan.disburseDate = apply;
+      loan.schedule = buildSchedule(amount, term, rate, apply);
+    }
+    state.loans.push(loan);
+    return loan;
+  }
+
+  // 種子資料：申請中、已核准（待放款）、放款中(含逾期)、已拒絕
+  seedLoan('C-1001', 50000, 6, 8, '申請中', '王小明', '', '', 1, '旺角');
+  seedLoan('C-1001', 40000, 5, 9, '已核准', '王小明', '陳主管', '文件齊全，同意核准，待確認放款', 3, '旺角');
+  var l2 = seedLoan('C-1002', 30000, 4, 10, '放款中', '王小明', '陳主管', '收入穩定，同意放款', 20, '沙田');
+  var l3 = seedLoan('C-1003', 80000, 8, 8, '放款中', '王小明', '陳主管', '首次借款，金額較大但有抵押物', 55, '北角');
+  // 讓 l3 的第一期變成逾期
+  if(l3.schedule[0]){ l3.schedule[0].due = addDays(todayStr(), -10); l3.schedule[0].status='逾期'; }
+  seedLoan('C-1004', 20000, 3, 12, '已拒絕', '王小明', '陳主管', '借款人已列黑名單，拒絕核貸', 5, '屯門');
+
+  function refreshLoanStatus(){
+    state.loans.forEach(function(l){
+      if(l.status !== '放款中') return;
+      var allPaid = l.schedule.every(function(s){ return s.status==='已繳'; });
+      if(allPaid){ l.status='已還款'; return; }
+      var anyLate = l.schedule.some(function(s){ return s.status!=='已繳' && s.due < todayStr(); });
+      l.status = anyLate ? '逾期' : '放款中';
+      l.schedule.forEach(function(s){ if(s.status==='未繳' && s.due < todayStr()) s.status='逾期'; });
+    });
+  }
+  refreshLoanStatus();
+
+  // ---------- 通知（模擬寄送） ----------
+  function notifTemplate(kind, borrower, loan, extra){
+    var titles = {'繳款提醒':'【繳款提醒】', '逾期通知':'【逾期通知】', '入帳通知':'【入帳確認】'};
+    var subject = titles[kind] + '借款單 ' + loan.id;
+    var body = '';
+    if(kind==='繳款提醒') body = borrower.name + ' 您好，借款單 ' + loan.id + ' 將於 ' + extra.due + ' 到期，應繳 ' + fmtMoney(extra.amount) + '，請準時繳款。';
+    if(kind==='逾期通知') body = borrower.name + ' 您好，借款單 ' + loan.id + ' 第 ' + extra.n + ' 期已逾期 ' + extra.days + ' 天，欠款 ' + fmtMoney(extra.amount) + '，請盡快繳清。';
+    if(kind==='入帳通知') body = borrower.name + ' 您好，已收到借款單 ' + loan.id + ' 款項 ' + fmtMoney(extra.amount) + '，感謝繳款。';
+    return {subject:subject, body:body};
+  }
+  function sendNotify(kind, channel, borrower, loan, extra){
+    var t = notifTemplate(kind, borrower, loan, extra || {});
+    state.notifications.unshift({
+      time: todayStr() + ' ' + pad(new Date().getHours())+':'+pad(new Date().getMinutes()),
+      borrowerId: borrower.id, borrowerName: borrower.name, loanId: loan ? loan.id : '',
+      kind: kind, channel: channel, to: channel==='mail' ? borrower.email : borrower.phone,
+      subject: t.subject, body: t.body, by: currentUserName()
+    });
+    toast('已模擬發送「' + kind + '」（' + (channel==='mail'?'Mail':'簡訊') + '）給 ' + borrower.name);
+    renderAll();
+  }
+
+  // ---------- 角色／帳號／登入 ----------
+  function currentUserName(){ var u = currentUser(); return u ? u.name : ''; }
+  var ROLE_LABEL = {officer:'申請人', supervisor:'核准人', sysadmin:'系統管理員'};
+  // 各頁面允許的角色；帳號管理只有系統管理員看得到
+  var NAV_ROLES = {
+    dashboard: ['officer','supervisor','sysadmin'],
+    borrowers: ['officer','supervisor','sysadmin'],
+    loans: ['officer','supervisor','sysadmin'],
+    approvals: ['officer','supervisor','sysadmin'],
+    notify: ['officer','supervisor','sysadmin'],
+    accounts: ['sysadmin']
+  };
+
+  function populateAccountSelect(sel){
+    sel.innerHTML = state.users.filter(function(u){ return u.active; }).map(function(u){
+      return '<option value="'+u.id+'">'+ROLE_LABEL[u.role]+'｜'+esc(u.name)+'</option>';
+    }).join('');
+  }
+  function refreshAccountSelects(){
+    populateAccountSelect(document.getElementById('loginRole'));
+    var roleSel = document.getElementById('roleSel');
+    populateAccountSelect(roleSel);
+    if(findUser(state.currentUserId) && findUser(state.currentUserId).active) roleSel.value = state.currentUserId;
+  }
+
+  document.getElementById('roleSel').addEventListener('change', function(e){
+    state.currentUserId = e.target.value;
+    state.role = currentUser().role;
+    if(NAV_ROLES[state.view].indexOf(state.role) < 0) state.view = 'dashboard';
+    renderAll();
+  });
+  function doLogin(){
+    state.currentUserId = val('loginRole');
+    state.role = currentUser().role;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    refreshAccountSelects();
+    renderAll();
+    toast('登入成功：' + ROLE_LABEL[state.role] + ' ' + currentUserName());
+  }
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('loginPwd').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    closeModal();
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginPwd').value = '';
+    refreshAccountSelects();
+  });
+  document.querySelectorAll('.nav-item').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      state.view = btn.dataset.view;
+      closeModal();
+      document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.toggle('active', b===btn); });
+      renderAll();
+    });
+  });
+  refreshAccountSelects();
+
+  // ---------- 頁面渲染 ----------
+  var TITLES = {dashboard:'首頁', borrowers:'借款人', loans:'借款單', approvals:'核貸審核', notify:'通知紀錄', accounts:'帳號管理'};
+
+  function renderAll(){
+    refreshLoanStatus();
+    document.getElementById('pageTitle').textContent = TITLES[state.view];
+    document.getElementById('whoChip').textContent = ROLE_LABEL[state.role] + '：' + currentUserName();
+    var pending = state.loans.filter(function(l){ return l.status==='申請中'; }).length;
+    var badge = document.getElementById('apprBadge');
+    badge.textContent = pending; badge.classList.toggle('on', pending>0);
+
+    document.querySelectorAll('.nav-item').forEach(function(b){
+      var allowed = NAV_ROLES[b.dataset.view].indexOf(state.role) > -1;
+      b.style.display = allowed ? '' : 'none';
+      b.classList.toggle('active', b.dataset.view===state.view);
+    });
+
+    var el = document.getElementById('content');
+    if(state.view==='dashboard') el.innerHTML = renderDashboard();
+    else if(state.view==='borrowers') el.innerHTML = renderBorrowers();
+    else if(state.view==='loans') el.innerHTML = renderLoans();
+    else if(state.view==='approvals') el.innerHTML = renderApprovals();
+    else if(state.view==='notify') el.innerHTML = renderNotify();
+    else if(state.view==='accounts') el.innerHTML = renderAccounts();
+    bindViewEvents();
+  }
+
+  function renderDashboard(){
+    var total = state.borrowers.length;
+    var black = state.borrowers.filter(function(b){ return b.blacklist; }).length;
+    var pending = state.loans.filter(function(l){ return l.status==='申請中'; }).length;
+    var approved = state.loans.filter(function(l){ return l.status==='已核准'; }).length;
+    var overdue = state.loans.filter(function(l){ return l.status==='逾期'; }).length;
+    var thisMonthAmt = state.loans.filter(function(l){ return l.disburseDate && l.disburseDate.slice(0,7)===todayStr().slice(0,7); })
+      .reduce(function(s,l){ return s+l.amount; }, 0);
+
+    var html = '<div class="stats">' +
+      '<div class="stat"><div class="n">'+total+'</div><div class="l">借款人數（黑名單 '+black+'）</div></div>' +
+      '<div class="stat'+(pending?' alert':'')+'"><div class="n">'+pending+'</div><div class="l">申請中借款單</div></div>' +
+      '<div class="stat"><div class="n">'+approved+'</div><div class="l">已核准（待放款）</div></div>' +
+      '<div class="stat'+(overdue?' alert':'')+'"><div class="n">'+overdue+'</div><div class="l">逾期借款單</div></div>' +
+      '<div class="stat"><div class="n">'+fmtMoney(thisMonthAmt)+'</div><div class="l">本月已放款</div></div>' +
+    '</div>';
+
+    var overdueLoans = state.loans.filter(function(l){ return l.status==='逾期'; });
+    html += '<div class="panel"><h2>逾期待處理</h2>';
+    if(!overdueLoans.length) html += '<div class="empty-state">目前沒有逾期借款單</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>借款單</th><th>借款人</th><th>逾期期數</th><th>金額</th><th></th></tr></thead><tbody>';
+      overdueLoans.forEach(function(l){
+        var b = findBorrower(l.borrowerId);
+        var lateRow = l.schedule.filter(function(s){ return s.status==='逾期'; })[0];
+        html += '<tr><td>'+l.id+'</td><td>'+esc(b.name)+'</td><td>第'+(lateRow?lateRow.n:'-')+'期</td><td>'+fmtMoney(lateRow?lateRow.amount:0)+'</td>' +
+          '<td><button class="btn small ghost" data-notifyloan="'+l.id+'" data-kind="逾期通知" data-n="'+(lateRow?lateRow.n:'')+'">發送逾期通知</button></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderBorrowers(){
+    var list = filteredBorrowers();
+    var html = '<div class="panel"><div class="detail-head"><h2>借款人清單</h2><div>'+renderExportGroup('borrower')+' <button class="btn small" id="addBorrowerBtn">＋ 新增借款人</button></div></div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">這裡是借款人的身分與收款資料，「最新借款」欄只顯示最近一筆借款的金額／期數／狀態；完整多筆借款紀錄請到「借款單」頁面查看，或點查看進入借款人詳情。</div>';
+    html += renderSearchToolbar('borrower', state.borrowerQuery, true);
+    if(hasQueryValue(state.borrowerQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+list.length+' 筆</div>';
+    html += '<div class="table-wrap"><table><thead><tr><th>姓名</th><th>身分證</th><th>電話</th><th>收款方式</th><th>負責收數員</th><th>建立日期</th><th>最新借款金額</th><th>最新借款期數</th><th>狀態</th><th></th></tr></thead><tbody>';
+    if(!list.length) html += '<tr><td colspan="10" class="empty-state">查無符合的借款人</td></tr>';
+    else list.forEach(function(b){
+      var latest = latestLoanOf(b.id);
+      html += '<tr>' +
+        '<td>'+esc(b.name)+'</td><td>'+esc(b.idNumber||'—')+'</td><td>'+esc(b.phone)+'</td>' +
+        '<td>'+esc(b.collectMethod)+(b.collectMethod==='轉帳'?' <span class="hint" style="display:inline">'+esc(b.bankInfo)+'</span>':'')+'</td>' +
+        '<td>'+(b.collectMethod==='人員收帳' ? esc(b.collector||'未指派') : '—')+'</td>' +
+        '<td>'+esc(b.createdDate||'—')+'</td>' +
+        '<td>'+(latest ? fmtMoney(latest.amount) : '—')+'</td>' +
+        '<td>'+(latest ? latest.term+' 期' : '—')+'</td>' +
+        '<td>'+(b.blacklist ? '<span class="pill" data-status="黑名單">黑名單</span>' : '<span class="pill" data-status="正常">正常</span>')+'</td>' +
+        '<td><button class="btn small ghost" data-viewborrower="'+b.id+'">查看</button></td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+    return html;
+  }
+
+  function renderBorrowerDetailContent(b){
+    var loans = borrowerLoans(b.id);
+    var html = '<div class="detail-head"><h2>借款人詳情：'+esc(b.name)+'</h2>' +
+      '<div><button class="btn small ghost" data-editborrower="'+b.id+'">編輯</button> ' +
+      '<button class="btn small '+(b.blacklist?'ghost':'danger')+'" data-toggleblack="'+b.id+'">'+(b.blacklist?'解除黑名單':'列入黑名單')+'</button> ' +
+      '<button class="btn small ghost" data-modalclose>關閉</button></div></div>';
+    html += '<div class="detail-fields">' +
+      '<div><span class="k">身分證</span>'+esc(b.idNumber||'—')+'</div>' +
+      '<div><span class="k">電話</span>'+esc(b.phone)+'</div>' +
+      '<div><span class="k">電郵（通知用）</span>'+esc(b.email||'—')+'</div>' +
+      '<div><span class="k">地址</span>'+esc(b.address||'—')+'</div>' +
+      '<div><span class="k">收款方式</span>'+esc(b.collectMethod)+'</div>' +
+      (b.collectMethod==='轉帳' ? '<div><span class="k">收款銀行帳戶</span>'+esc(b.bankInfo||'—')+'</div>' : '<div><span class="k">負責收數員</span>'+esc(b.collector||'未指派')+'</div>') +
+    '</div>';
+    if(b.blacklist) html += '<div class="banner alert"><span>⚠</span><div><span class="b-title">已列入黑名單</span>原因：'+esc(b.blacklistNote||'—')+'</div></div>';
+    html += '<h2 style="margin-top:14px;">借款紀錄（'+loans.length+'）</h2>';
+    if(!loans.length) html += '<div class="empty-state">尚無借款紀錄</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>編號</th><th>金額</th><th>期數</th><th>狀態</th><th></th></tr></thead><tbody>';
+      loans.forEach(function(l){
+        html += '<tr><td>'+l.id+'</td><td>'+fmtMoney(l.amount)+'</td><td>'+l.term+'</td><td><span class="pill" data-status="'+l.status+'">'+l.status+'</span></td><td><button class="btn small ghost" data-gotoloan2="'+l.id+'">查看</button></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    var notes = b.notes || [];
+    html += '<div class="detail-head" style="margin-top:14px;"><h2 style="margin:0;">說明／催收備註（'+notes.length+'）</h2><button class="btn small ghost" data-addnote="'+b.id+'">＋ 新增說明</button></div>';
+    if(!notes.length) html += '<div class="empty-state">尚無備註</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>日期</th><th>內容</th><th>記錄人</th></tr></thead><tbody>';
+      notes.slice().reverse().forEach(function(n){
+        html += '<tr><td>'+esc(n.date)+'</td><td style="white-space:normal;">'+esc(n.text)+'</td><td>'+esc(n.by)+'</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    return html;
+  }
+
+  function renderLoans(){
+    var list = filteredLoans(state.loans, state.loanQuery);
+    var html = '<div class="panel"><div class="detail-head"><h2>借款單清單</h2><div>'+renderExportGroup('loan')+' <button class="btn small" id="addLoanBtn">＋ 新增借款申請</button></div></div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">這裡是完整借款紀錄，同一借款人可能有多筆（含歷史已還款／已拒絕的借款）；借款人的身分與收款資料請到「借款人」頁面查看。</div>';
+    html += renderSearchToolbar('loan', state.loanQuery, true);
+    if(hasQueryValue(state.loanQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+list.length+' 筆</div>';
+    if(!list.length) html += '<div class="empty-state">'+(state.loans.length?'查無符合的借款單':'尚無借款單')+'</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>編號</th><th>借款人</th><th>金額</th><th>期數</th><th>收款方式</th><th>狀態</th><th>建立人</th><th>申請日期</th><th></th></tr></thead><tbody>';
+      list.slice().reverse().forEach(function(l){
+        var b = findBorrower(l.borrowerId);
+        html += '<tr>' +
+          '<td>'+l.id+'</td><td>'+esc(b.name)+(b.blacklist?' <span class="tag">黑名單</span>':'')+'</td><td>'+fmtMoney(l.amount)+'</td><td>'+l.term+'</td>' +
+          '<td>'+esc(l.collectMethod)+'</td><td><span class="pill" data-status="'+l.status+'">'+l.status+'</span></td><td>'+esc(l.createdBy)+'</td><td>'+l.applyDate+'</td>' +
+          '<td><button class="btn small ghost" data-viewloan2="'+l.id+'">查看</button></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderLoanDetailContent(l){
+    var b = findBorrower(l.borrowerId);
+    var html = '<div class="detail-head"><h2>借款單詳情：'+l.id+'</h2><button class="btn small ghost" data-modalclose>關閉</button></div>';
+    html += '<div class="detail-fields">' +
+      '<div><span class="k">借款人</span>'+esc(b.name)+' ('+esc(b.phone)+')</div>' +
+      '<div><span class="k">金額 / 期數 / 利率</span>'+fmtMoney(l.amount)+' / '+l.term+' 期 / '+l.rate+'%</div>' +
+      '<div><span class="k">申請日期</span>'+l.applyDate+'</div>' +
+      '<div><span class="k">收款方式</span>'+esc(l.collectMethod)+'</div>' +
+      '<div><span class="k">建立人</span>'+esc(l.createdBy)+'</div>' +
+      '<div><span class="k">場（分店／地區）</span>'+esc(l.branch||'—')+'</div>' +
+      '<div><span class="k">狀態</span><span class="pill" data-status="'+l.status+'">'+l.status+'</span></div>' +
+    '</div>';
+    if(l.remarks) html += '<div class="hint">備注：'+esc(l.remarks)+'</div>';
+    if(l.approvedBy) html += '<div class="hint">核貸審核：'+esc(l.approvedBy)+' — '+esc(l.approveNote||'')+'</div>';
+    if(b.blacklist && (l.status==='申請中' || l.status==='已核准')) html += '<div class="banner alert"><span>⚠</span><div>借款人已列入黑名單，審核時請留意。</div></div>';
+
+    if(l.schedule && l.schedule.length){
+      html += '<h2 style="margin-top:16px;">還款排程</h2>';
+      html += '<div class="table-wrap"><table><thead><tr><th>期數</th><th>到期日</th><th>應繳</th><th>狀態</th><th></th></tr></thead><tbody>';
+      l.schedule.forEach(function(s){
+        var actions = '';
+        if(s.status!=='已繳') actions += '<button class="btn small ghost" data-recvpay="'+l.id+'" data-n="'+s.n+'">登記入帳</button> ';
+        if(s.status==='未繳') actions += '<button class="btn small ghost" data-notifyloan="'+l.id+'" data-kind="繳款提醒" data-n="'+s.n+'">發繳款提醒</button> ';
+        if(s.status==='逾期') actions += '<button class="btn small ghost" data-notifyloan="'+l.id+'" data-kind="逾期通知" data-n="'+s.n+'">發逾期通知</button>';
+        html += '<tr><td>第'+s.n+'期</td><td>'+s.due+'</td><td>'+fmtMoney(s.amount)+'</td><td><span class="pill" data-status="'+(s.status==='已繳'?'已還款':s.status)+'">'+s.status+'</span></td><td>'+actions+'</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    if(l.status==='申請中'){
+      if(state.role==='supervisor'){
+        html += '<div class="form-row one" style="margin-top:14px;">' +
+          '<label><span class="k">審核意見</span><textarea id="apprNote" placeholder="例如：文件齊全、收入穩定，同意核准"></textarea></label></div>' +
+          '<button class="btn" id="approveBtn" data-loan="'+l.id+'">核准</button> ' +
+          '<button class="btn danger" id="rejectBtn" data-loan="'+l.id+'">拒絕</button>';
+      } else {
+        html += '<div class="hint">此借款單已提交，需由「核准人」進行第二人審核，核准後才可放款。</div>';
+      }
+    }
+    if(l.status==='已核准'){
+      if(state.role==='officer'){
+        html += '<div class="hint" style="margin-bottom:10px;">已由核准人核准，請確認撥款後系統會自動產生還款排程。</div>' +
+          '<button class="btn" id="disburseBtn" data-loan="'+l.id+'">確認放款</button>';
+      } else {
+        html += '<div class="hint">已核准，待申請人確認放款。</div>';
+      }
+    }
+    return html;
+  }
+
+  function renderApprovals(){
+    var pendingAll = state.loans.filter(function(l){ return l.status==='申請中'; });
+    var pending = filteredLoans(pendingAll, state.apprQuery);
+    var html = '<div class="panel"><div class="detail-head"><h2>待審核借款單（'+pendingAll.length+'）</h2><div>'+renderExportGroup('appr')+'</div></div>';
+    html += renderSearchToolbar('appr', state.apprQuery, true);
+    if(hasQueryValue(state.apprQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+pending.length+' 筆</div>';
+    if(!pending.length) html += '<div class="empty-state">'+(pendingAll.length?'查無符合的待審核借款單':'目前沒有待審核的借款單')+'</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>編號</th><th>借款人</th><th>金額</th><th>期數</th><th>建立人</th><th>申請日期</th><th>狀態</th><th></th></tr></thead><tbody>';
+      pending.forEach(function(l){
+        var b = findBorrower(l.borrowerId);
+        html += '<tr><td>'+l.id+'</td><td>'+esc(b.name)+(b.blacklist?' <span class="tag">黑名單</span>':'')+'</td><td>'+fmtMoney(l.amount)+'</td><td>'+l.term+'</td><td>'+esc(l.createdBy)+'</td><td>'+l.applyDate+'</td>' +
+          '<td><span class="pill" data-status="'+l.status+'">'+l.status+'</span></td>' +
+          '<td><button class="btn small ghost" data-viewloan2="'+l.id+'">查看並審核</button></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '<div class="hint">規則：借款申請由申請人建立，一律需由核准人（第二人）核准後才可放款；同一人不可自己審核自己建立的借款單。</div>';
+    html += '</div>';
+    return html;
+  }
+
+  function renderNotify(){
+    var list = filteredNotifications();
+    var html = '<div class="panel"><div class="detail-head"><h2>通知紀錄（'+state.notifications.length+'）</h2><div>'+renderExportGroup('notify')+'</div></div>';
+    html += renderSearchToolbar('notify', state.notifyQuery, true);
+    if(hasQueryValue(state.notifyQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+list.length+' 筆</div>';
+    if(!list.length) html += '<div class="empty-state">'+(state.notifications.length?'查無符合的通知紀錄':'尚無通知紀錄')+'</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>時間</th><th>借款人</th><th>借款單</th><th>類型</th><th>管道</th><th>收件</th><th>內容</th><th>發送人</th></tr></thead><tbody>';
+      list.forEach(function(n){
+        html += '<tr><td>'+n.time+'</td><td>'+esc(n.borrowerName)+'</td><td>'+esc(n.loanId)+'</td>' +
+          '<td>'+esc(n.kind)+'</td><td>'+(n.channel==='mail'?'Mail':'簡訊')+'</td><td>'+esc(n.to||'—')+'</td>' +
+          '<td style="max-width:260px;white-space:normal;">'+esc(n.body)+'</td><td>'+esc(n.by)+'</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderAccounts(){
+    var html = '<div class="panel"><div class="detail-head"><h2>帳號清單</h2><button class="btn small" id="addAccountBtn">＋ 新增帳號</button></div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">系統管理員可在這裡建立帳號並指派角色（申請人／核准人／系統管理員）；停用的帳號無法用來登入。</div>';
+    html += '<div class="table-wrap"><table><thead><tr><th>姓名</th><th>角色</th><th>狀態</th><th></th></tr></thead><tbody>';
+    state.users.forEach(function(u){
+      var isSelf = u.id === state.currentUserId;
+      html += '<tr>' +
+        '<td>'+esc(u.name)+(isSelf?' <span class="hint" style="display:inline">（目前登入）</span>':'')+'</td>' +
+        '<td>'+ROLE_LABEL[u.role]+'</td>' +
+        '<td>'+(u.active ? '<span class="pill" data-status="正常">啟用中</span>' : '<span class="pill" data-status="黑名單">已停用</span>')+'</td>' +
+        '<td><button class="btn small ghost" data-editaccount="'+u.id+'">編輯</button> ' +
+        '<button class="btn small ghost" data-toggleaccount="'+u.id+'"'+(isSelf?' disabled':'')+'>'+(u.active?'停用':'啟用')+'</button></td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+    return html;
+  }
+
+  // ---------- 事件綁定 ----------
+  // 通用綁定：同時用在頁面內容（#content）與彈窗（#modalBox），避免同一套 data-* 規則要寫兩次
+  // 只有按鈕（查看／查看並審核）才會開彈窗，點列表其他地方不會觸發
+  function bindDynamicEvents(root){
+    root.querySelectorAll('[data-viewborrower]').forEach(function(t){
+      t.addEventListener('click', function(){ openBorrowerDetail(t.dataset.viewborrower); });
+    });
+    root.querySelectorAll('[data-editborrower]').forEach(function(t){ t.addEventListener('click', function(){ openEditBorrower(t.dataset.editborrower); }); });
+    root.querySelectorAll('[data-toggleblack]').forEach(function(t){ t.addEventListener('click', function(){ openToggleBlacklist(t.dataset.toggleblack); }); });
+    root.querySelectorAll('[data-addnote]').forEach(function(t){ t.addEventListener('click', function(){ openAddNote(t.dataset.addnote); }); });
+    root.querySelectorAll('[data-editaccount]').forEach(function(t){ t.addEventListener('click', function(){ openEditAccount(t.dataset.editaccount); }); });
+    root.querySelectorAll('[data-toggleaccount]').forEach(function(t){ t.addEventListener('click', function(){ toggleAccountActive(t.dataset.toggleaccount); }); });
+    root.querySelectorAll('[data-viewloan2],[data-gotoloan2]').forEach(function(t){
+      t.addEventListener('click', function(e){
+        e.stopPropagation();
+        openLoanDetail(t.dataset.viewloan2||t.dataset.gotoloan2);
+      });
+    });
+    root.querySelectorAll('[data-recvpay]').forEach(function(t){
+      t.addEventListener('click', function(){ recordPayment(t.dataset.recvpay, Number(t.dataset.n)); });
+    });
+    root.querySelectorAll('[data-notifyloan]').forEach(function(t){
+      t.addEventListener('click', function(){ openSendNotify(t.dataset.notifyloan, t.dataset.kind, t.dataset.n); });
+    });
+    root.querySelectorAll('[data-modalclose]').forEach(function(t){ t.addEventListener('click', closeModal); });
+    var appr = root.querySelector('#approveBtn'); if(appr) appr.addEventListener('click', function(){ decideLoan(appr.dataset.loan, true); });
+    var rej = root.querySelector('#rejectBtn'); if(rej) rej.addEventListener('click', function(){ decideLoan(rej.dataset.loan, false); });
+    var disb = root.querySelector('#disburseBtn'); if(disb) disb.addEventListener('click', function(){ confirmDisburse(disb.dataset.loan); });
+  }
+
+  function bindViewEvents(){
+    var el = document.getElementById('content');
+    bindDynamicEvents(el);
+
+    var addB = document.getElementById('addBorrowerBtn'); if(addB) addB.addEventListener('click', openAddBorrower);
+    var addL = document.getElementById('addLoanBtn'); if(addL) addL.addEventListener('click', openAddLoan);
+    var addA = document.getElementById('addAccountBtn'); if(addA) addA.addEventListener('click', openAddAccount);
+
+    el.querySelectorAll('[data-export]').forEach(function(t){
+      t.addEventListener('click', function(){ doExport(t.dataset.export, t.dataset.fmt); });
+    });
+
+    bindSearchToolbar('borrower', state.borrowerQuery, true);
+    bindSearchToolbar('loan', state.loanQuery, true);
+    bindSearchToolbar('appr', state.apprQuery, true);
+    bindSearchToolbar('notify', state.notifyQuery, true);
+  }
+
+  // ---------- 匯出（模擬）：CSV／Excel（簡易 .xls）／PDF（列印預覽） ----------
+  function getExportData(kind){
+    if(kind==='borrower'){
+      var blist = filteredBorrowers();
+      return {
+        title: '借款人清單',
+        headers: ['姓名','身分證','電話','收款方式','收款帳戶或收數員','建立日期','最新借款金額','最新借款期數','狀態'],
+        rows: blist.map(function(b){
+          var latest = latestLoanOf(b.id);
+          return [b.name, b.idNumber, b.phone, b.collectMethod, b.collectMethod==='轉帳'?b.bankInfo:b.collector, b.createdDate, latest?latest.amount:'', latest?latest.term:'', b.blacklist?'黑名單':'正常'];
+        })
+      };
+    }
+    if(kind==='loan' || kind==='appr'){
+      var base = kind==='appr' ? state.loans.filter(function(l){ return l.status==='申請中'; }) : state.loans;
+      var query = kind==='appr' ? state.apprQuery : state.loanQuery;
+      var llist = filteredLoans(base, query);
+      return {
+        title: kind==='appr' ? '待審核借款單' : '借款單清單',
+        headers: ['編號','借款人','身分證','金額','期數','利率','收款方式','狀態','建立人','核准人','申請日期','場','備注'],
+        rows: llist.map(function(l){
+          var b = findBorrower(l.borrowerId);
+          return [l.id, b.name, b.idNumber, l.amount, l.term, l.rate, l.collectMethod, l.status, l.createdBy, l.approvedBy||'', l.applyDate, l.branch||'', l.remarks||''];
+        })
+      };
+    }
+    if(kind==='notify'){
+      var nlist = filteredNotifications();
+      return {
+        title: '通知紀錄',
+        headers: ['時間','借款人','借款單','類型','管道','收件','內容','發送人'],
+        rows: nlist.map(function(n){ return [n.time, n.borrowerName, n.loanId, n.kind, n.channel==='mail'?'Mail':'簡訊', n.to||'', n.body, n.by]; })
+      };
+    }
+    return {title:'', headers:[], rows:[]};
+  }
+  function doExport(kind, fmt){
+    var d = getExportData(kind);
+    if(!d.rows.length){ toast('沒有可匯出的資料'); return; }
+    if(fmt==='csv') exportCSV(d.title+'_'+todayStr()+'.csv', d.headers, d.rows);
+    else if(fmt==='xlsx') exportExcel(d.title+'_'+todayStr()+'.xlsx', d.headers, d.rows);
+    else if(fmt==='pdf') exportPDF(d.title, d.headers, d.rows);
+  }
+  function renderExportGroup(kind){
+    return '<span class="hint" style="margin-right:2px;">匯出：</span>' +
+      '<button class="btn small ghost" data-export="'+kind+'" data-fmt="csv">CSV</button>' +
+      '<button class="btn small ghost" data-export="'+kind+'" data-fmt="xlsx">Excel</button>' +
+      '<button class="btn small ghost" data-export="'+kind+'" data-fmt="pdf">PDF</button>';
+  }
+  function exportCSV(filename, headers, rows){
+    var esc2 = function(v){ v = (v===undefined||v===null) ? '' : String(v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+    var csv = headers.map(esc2).join(',') + '\r\n' + rows.map(function(r){ return r.map(esc2).join(','); }).join('\r\n');
+    var blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('已匯出：'+filename);
+  }
+  // ---- 純前端產生真正的 .xlsx（OOXML／ZIP，store 不壓縮＋CRC32，不依賴任何函式庫） ----
+  var CRC_TABLE = (function(){
+    var table = [];
+    for(var n=0;n<256;n++){
+      var c = n;
+      for(var k=0;k<8;k++){ c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); }
+      table[n] = c>>>0;
+    }
+    return table;
+  })();
+  function crc32(bytes){
+    var crc = 0xFFFFFFFF;
+    for(var i=0;i<bytes.length;i++){ crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8); }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+  function strToBytes(str){ return new TextEncoder().encode(str); }
+  function buildZip(files){
+    var localParts = [], centralParts = [], offset = 0;
+    files.forEach(function(f){
+      var nameBytes = strToBytes(f.name);
+      var data = f.data;
+      var crc = crc32(data), size = data.length;
+      var lh = new Uint8Array(30 + nameBytes.length);
+      var ldv = new DataView(lh.buffer);
+      ldv.setUint32(0, 0x04034b50, true); ldv.setUint16(4, 20, true); ldv.setUint16(6, 0, true);
+      ldv.setUint16(8, 0, true); ldv.setUint16(10, 0, true); ldv.setUint16(12, 0x21, true);
+      ldv.setUint32(14, crc, true); ldv.setUint32(18, size, true); ldv.setUint32(22, size, true);
+      ldv.setUint16(26, nameBytes.length, true); ldv.setUint16(28, 0, true);
+      lh.set(nameBytes, 30);
+      localParts.push(lh, data);
+
+      var ch = new Uint8Array(46 + nameBytes.length);
+      var cdv = new DataView(ch.buffer);
+      cdv.setUint32(0, 0x02014b50, true); cdv.setUint16(4, 20, true); cdv.setUint16(6, 20, true);
+      cdv.setUint16(8, 0, true); cdv.setUint16(10, 0, true); cdv.setUint16(12, 0, true); cdv.setUint16(14, 0x21, true);
+      cdv.setUint32(16, crc, true); cdv.setUint32(20, size, true); cdv.setUint32(24, size, true);
+      cdv.setUint16(28, nameBytes.length, true); cdv.setUint16(30, 0, true); cdv.setUint16(32, 0, true);
+      cdv.setUint16(34, 0, true); cdv.setUint16(36, 0, true); cdv.setUint32(38, 0, true);
+      cdv.setUint32(42, offset, true);
+      ch.set(nameBytes, 46);
+      centralParts.push(ch);
+
+      offset += lh.length + data.length;
+    });
+    var centralSize = centralParts.reduce(function(s,p){ return s+p.length; }, 0);
+    var end = new Uint8Array(22);
+    var edv = new DataView(end.buffer);
+    edv.setUint32(0, 0x06054b50, true); edv.setUint16(4, 0, true); edv.setUint16(6, 0, true);
+    edv.setUint16(8, files.length, true); edv.setUint16(10, files.length, true);
+    edv.setUint32(12, centralSize, true); edv.setUint32(16, offset, true); edv.setUint16(20, 0, true);
+    return localParts.concat(centralParts).concat([end]);
+  }
+  function xmlEscape(v){ v=(v===undefined||v===null)?'':String(v); return v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+  function colName(n){ var s=''; while(n>0){ var m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+  function buildSheetXML(headers, rows){
+    var allRows = [headers].concat(rows);
+    var xmlRows = allRows.map(function(r, ri){
+      var cells = r.map(function(v, ci){
+        var ref = colName(ci+1) + (ri+1);
+        return '<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xmlEscape(v)+'</t></is></c>';
+      }).join('');
+      return '<row r="'+(ri+1)+'">'+cells+'</row>';
+    }).join('');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+xmlRows+'</sheetData></worksheet>';
+  }
+  function exportExcel(filename, headers, rows){
+    var sheetXml = buildSheetXML(headers, rows);
+    var contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+      '</Types>';
+    var rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      '</Relationships>';
+    var workbookXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>';
+    var workbookRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+      '</Relationships>';
+    var parts = buildZip([
+      {name:'[Content_Types].xml', data: strToBytes(contentTypes)},
+      {name:'_rels/.rels', data: strToBytes(rootRels)},
+      {name:'xl/workbook.xml', data: strToBytes(workbookXml)},
+      {name:'xl/_rels/workbook.xml.rels', data: strToBytes(workbookRels)},
+      {name:'xl/worksheets/sheet1.xml', data: strToBytes(sheetXml)}
+    ]);
+    var blob = new Blob(parts, {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('已匯出（Excel）：'+filename);
+  }
+  function exportPDF(title, headers, rows){
+    var esc2 = function(v){ v=(v===undefined||v===null)?'':String(v); return v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    var w = window.open('', '_blank');
+    if(!w){ toast('瀏覽器阻擋了新視窗，請允許彈出視窗以匯出 PDF'); return; }
+    var html = '<html><head><meta charset="utf-8"><title>'+esc2(title)+'</title><style>' +
+      'body{font-family:Arial,"Microsoft JhengHei","Noto Sans TC",sans-serif;padding:24px;color:#142320;}' +
+      'h1{font-size:18px;margin:0 0 4px;} .meta{font-size:12px;color:#666;margin-bottom:16px;}' +
+      'table{border-collapse:collapse;width:100%;font-size:12px;} th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;}' +
+      'th{background:#eee;}' +
+      '</style></head><body>' +
+      '<h1>'+esc2(title)+'</h1><div class="meta">匯出時間：'+todayStr()+' · 共 '+rows.length+' 筆（示範用列印預覽，請用瀏覽器列印功能另存為 PDF）</div>' +
+      '<table><thead><tr>'+headers.map(function(h){ return '<th>'+esc2(h)+'</th>'; }).join('')+'</tr></thead><tbody>' +
+      rows.map(function(r){ return '<tr>'+r.map(function(v){ return '<td>'+esc2(v)+'</td>'; }).join('')+'</tr>'; }).join('') +
+      '</tbody></table></body></html>';
+    w.document.open(); w.document.write(html); w.document.close();
+    w.focus();
+    setTimeout(function(){ w.print(); }, 300);
+  }
+
+  function decideLoan(loanId, approve){
+    var l = findLoan(loanId);
+    if(l.createdBy === currentUserName()){ toast('建立人不可自行審核，需由另一位核准人審核'); return; }
+    var note = val('apprNote').trim();
+    l.approvedBy = currentUserName();
+    l.approveNote = note;
+    if(approve){
+      l.status = '已核准';
+      toast('已核准，待申請人確認放款：'+l.id);
+    } else {
+      l.status = '已拒絕';
+      toast('已拒絕借款申請：'+l.id);
+    }
+    renderAll(); refreshModal();
+  }
+
+  function confirmDisburse(loanId){
+    var l = findLoan(loanId);
+    l.status = '放款中';
+    l.disburseDate = todayStr();
+    l.schedule = buildSchedule(l.amount, l.term, l.rate, l.disburseDate);
+    toast('已確認放款：'+l.id);
+    renderAll(); refreshModal();
+  }
+
+  function recordPayment(loanId, n){
+    var l = findLoan(loanId);
+    var row = l.schedule.filter(function(s){ return s.n===n; })[0];
+    if(!row || row.status==='已繳') return;
+    row.status = '已繳'; row.paid = row.amount;
+    var b = findBorrower(l.borrowerId);
+    sendNotify('入帳通知', b.email ? 'mail' : 'sms', b, l, {amount: row.amount});
+    refreshModal();
+  }
+
+  function openSendNotify(loanId, kind, n){
+    var l = findLoan(loanId);
+    var b = findBorrower(l.borrowerId);
+    var row = n ? l.schedule.filter(function(s){ return s.n===Number(n); })[0] : null;
+    var extra = {};
+    if(kind==='繳款提醒' && row) extra = {due:row.due, amount:row.amount};
+    if(kind==='逾期通知' && row) extra = {n:row.n, days: daysBetween(row.due, todayStr()), amount:row.amount};
+    openModal(
+      '<div class="detail-head"><h2>發送'+kind+'</h2></div>' +
+      '<div class="hint">借款人：'+esc(b.name)+'（'+esc(b.phone)+' / '+esc(b.email||'無電郵')+'）</div>' +
+      '<div class="form-row one" style="margin-top:10px;"><label><span class="k">通知管道</span><select id="ntChannel">' +
+      '<option value="mail"'+(b.email?'':' disabled')+'>Mail'+(b.email?'':'（無電郵）')+'</option>' +
+      '<option value="sms">簡訊</option></select></label></div>' +
+      '<button class="btn" id="ntSendBtn">確認發送</button> <button class="btn ghost" id="ntCancelBtn">取消</button>'
+    );
+    document.getElementById('ntCancelBtn').addEventListener('click', function(){ if(modalState) refreshModal(); else closeModal(); });
+    document.getElementById('ntSendBtn').addEventListener('click', function(){
+      var channel = val('ntChannel');
+      sendNotify(kind, channel, b, l, extra);
+      if(modalState) refreshModal(); else closeModal();
+    });
+  }
+
+  function openAddBorrower(){
+    openModal(
+      '<div class="detail-head"><h2>新增借款人</h2></div>' +
+      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="nbName"></label>' +
+      '<label><span class="k">身分證 *</span><input type="text" id="nbIdNumber" placeholder="例如 A1234567"></label></div>' +
+      '<div class="form-row"><label><span class="k">電話 *</span><input type="text" id="nbPhone"></label>' +
+      '<label><span class="k">電郵（通知用）</span><input type="text" id="nbEmail"></label></div>' +
+      '<div class="form-row"><label><span class="k">地址</span><input type="text" id="nbAddress"></label></div>' +
+      '<div class="form-row"><label><span class="k">收款方式 *</span><select id="nbMethod"><option value="轉帳">轉帳</option><option value="人員收帳">人員收帳</option></select></label>' +
+      '<label id="nbExtraWrap"><span class="k" id="nbExtraLabel">收款銀行帳戶</span><input type="text" id="nbExtra"></label></div>' +
+      '<button class="btn" id="nbSaveBtn">儲存</button> <button class="btn ghost" id="nbCancelBtn">取消</button>'
+    );
+    document.getElementById('nbMethod').addEventListener('change', function(e){
+      document.getElementById('nbExtraLabel').textContent = e.target.value==='轉帳' ? '收款銀行帳戶' : '負責收數員';
+    });
+    document.getElementById('nbCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('nbSaveBtn').addEventListener('click', function(){
+      var name = val('nbName').trim(), idNumber = val('nbIdNumber').trim().toUpperCase(), phone = val('nbPhone').trim();
+      if(!name || !idNumber || !phone){ toast('請填寫姓名、身分證與電話'); return; }
+      var method = val('nbMethod');
+      var b = {
+        id: uid('C'), name:name, idNumber:idNumber, phone:phone, email: val('nbEmail').trim(), address: val('nbAddress').trim(),
+        collectMethod: method, bankInfo: method==='轉帳' ? val('nbExtra').trim() : '',
+        collector: method==='人員收帳' ? val('nbExtra').trim() : '', blacklist:false, blacklistNote:'', createdDate: todayStr()
+      };
+      state.borrowers.push(b);
+      if(state.view!=='borrowers'){
+        state.view='borrowers';
+        document.querySelectorAll('.nav-item').forEach(function(bt){ bt.classList.toggle('active', bt.dataset.view==='borrowers'); });
+      }
+      renderAll();
+      openBorrowerDetail(b.id);
+      toast('已新增借款人：'+b.name);
+    });
+  }
+
+  function openEditBorrower(id){
+    var b = findBorrower(id);
+    openModal(
+      '<div class="detail-head"><h2>編輯借款人：'+esc(b.name)+'</h2></div>' +
+      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="ebName" value="'+esc(b.name)+'"></label>' +
+      '<label><span class="k">身分證 *</span><input type="text" id="ebIdNumber" value="'+esc(b.idNumber)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">電話 *</span><input type="text" id="ebPhone" value="'+esc(b.phone)+'"></label>' +
+      '<label><span class="k">電郵</span><input type="text" id="ebEmail" value="'+esc(b.email)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">地址</span><input type="text" id="ebAddress" value="'+esc(b.address)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">收款方式</span><select id="ebMethod">' +
+      '<option value="轉帳"'+(b.collectMethod==='轉帳'?' selected':'')+'>轉帳</option>' +
+      '<option value="人員收帳"'+(b.collectMethod==='人員收帳'?' selected':'')+'>人員收帳</option></select></label>' +
+      '<label><span class="k" id="ebExtraLabel">'+(b.collectMethod==='轉帳'?'收款銀行帳戶':'負責收數員')+'</span><input type="text" id="ebExtra" value="'+esc(b.collectMethod==='轉帳'?b.bankInfo:b.collector)+'"></label></div>' +
+      '<button class="btn" id="ebSaveBtn">儲存</button> <button class="btn ghost" id="ebCancelBtn">取消</button>'
+    );
+    document.getElementById('ebMethod').addEventListener('change', function(e){
+      document.getElementById('ebExtraLabel').textContent = e.target.value==='轉帳' ? '收款銀行帳戶' : '負責收數員';
+    });
+    document.getElementById('ebCancelBtn').addEventListener('click', refreshModal);
+    document.getElementById('ebSaveBtn').addEventListener('click', function(){
+      var name = val('ebName').trim(), idNumber = val('ebIdNumber').trim().toUpperCase(), phone = val('ebPhone').trim();
+      if(!name || !idNumber || !phone){ toast('請填寫姓名、身分證與電話'); return; }
+      b.name = name; b.idNumber = idNumber; b.phone = phone; b.email = val('ebEmail').trim(); b.address = val('ebAddress').trim();
+      b.collectMethod = val('ebMethod');
+      if(b.collectMethod==='轉帳'){ b.bankInfo = val('ebExtra').trim(); } else { b.collector = val('ebExtra').trim(); }
+      renderAll(); refreshModal(); toast('已更新借款人資料');
+    });
+  }
+
+  function openAddNote(id){
+    var b = findBorrower(id);
+    openModal(
+      '<div class="detail-head"><h2>新增說明：'+esc(b.name)+'</h2></div>' +
+      '<div class="form-row one"><label><span class="k">內容 *</span><textarea id="noteText" placeholder="例如：客人表示這期較忙，已改約下週三上門收數"></textarea></label></div>' +
+      '<button class="btn" id="noteSaveBtn">儲存</button> <button class="btn ghost" id="noteCancelBtn">取消</button>'
+    );
+    document.getElementById('noteCancelBtn').addEventListener('click', refreshModal);
+    document.getElementById('noteSaveBtn').addEventListener('click', function(){
+      var text = val('noteText').trim();
+      if(!text){ toast('請填寫說明內容'); return; }
+      if(!b.notes) b.notes = [];
+      b.notes.push({date: todayStr(), text: text, by: currentUserName()});
+      renderAll(); refreshModal(); toast('已新增說明');
+    });
+  }
+
+  function openAddAccount(){
+    openModal(
+      '<div class="detail-head"><h2>新增帳號</h2></div>' +
+      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="acName"></label>' +
+      '<label><span class="k">角色 *</span><select id="acRole">' +
+      '<option value="officer">申請人</option><option value="supervisor">核准人</option><option value="sysadmin">系統管理員</option>' +
+      '</select></label></div>' +
+      '<div class="hint" style="margin-bottom:12px;">示範環境不設密碼，登入畫面選這個帳號、密碼隨便輸入即可登入。</div>' +
+      '<button class="btn" id="acSaveBtn">儲存</button> <button class="btn ghost" id="acCancelBtn">取消</button>'
+    );
+    document.getElementById('acCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('acSaveBtn').addEventListener('click', function(){
+      var name = val('acName').trim();
+      if(!name){ toast('請填寫姓名'); return; }
+      state.users.push({id: uid('U'), name:name, role: val('acRole'), active:true});
+      closeModal(); renderAll(); refreshAccountSelects(); toast('已新增帳號：'+name);
+    });
+  }
+
+  function openEditAccount(id){
+    var u = findUser(id);
+    openModal(
+      '<div class="detail-head"><h2>編輯帳號：'+esc(u.name)+'</h2></div>' +
+      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="acName" value="'+esc(u.name)+'"></label>' +
+      '<label><span class="k">角色 *</span><select id="acRole">' +
+      '<option value="officer"'+(u.role==='officer'?' selected':'')+'>申請人</option>' +
+      '<option value="supervisor"'+(u.role==='supervisor'?' selected':'')+'>核准人</option>' +
+      '<option value="sysadmin"'+(u.role==='sysadmin'?' selected':'')+'>系統管理員</option>' +
+      '</select></label></div>' +
+      '<button class="btn" id="acSaveBtn">儲存</button> <button class="btn ghost" id="acCancelBtn">取消</button>'
+    );
+    document.getElementById('acCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('acSaveBtn').addEventListener('click', function(){
+      var name = val('acName').trim();
+      if(!name){ toast('請填寫姓名'); return; }
+      u.name = name; u.role = val('acRole');
+      if(u.id === state.currentUserId) state.role = u.role;
+      closeModal(); renderAll(); refreshAccountSelects(); toast('已更新帳號資料');
+    });
+  }
+
+  function toggleAccountActive(id){
+    var u = findUser(id);
+    if(id === state.currentUserId){ toast('不可停用自己目前登入的帳號'); return; }
+    u.active = !u.active;
+    renderAll(); refreshAccountSelects();
+    toast(u.active ? '已啟用帳號：'+u.name : '已停用帳號：'+u.name);
+  }
+
+  function openToggleBlacklist(id){
+    var b = findBorrower(id);
+    if(b.blacklist){
+      b.blacklist=false; b.blacklistNote=''; renderAll(); refreshModal(); toast('已解除黑名單：'+b.name); return;
+    }
+    openModal(
+      '<div class="detail-head"><h2>列入黑名單：'+esc(b.name)+'</h2></div>' +
+      '<div class="form-row one"><label><span class="k">原因 *</span><textarea id="blNote" placeholder="例如：拖數失聯、多次逾期不還"></textarea></label></div>' +
+      '<button class="btn danger" id="blSaveBtn">確定列入黑名單</button> <button class="btn ghost" id="blCancelBtn">取消</button>'
+    );
+    document.getElementById('blCancelBtn').addEventListener('click', refreshModal);
+    document.getElementById('blSaveBtn').addEventListener('click', function(){
+      var note = val('blNote').trim();
+      if(!note){ toast('請填寫原因'); return; }
+      b.blacklist = true; b.blacklistNote = note; renderAll(); refreshModal(); toast('已列入黑名單：'+b.name);
+    });
+  }
+
+  function openAddLoan(){
+    var options = state.borrowers.map(function(b){ return '<option value="'+b.id+'">'+esc(b.name)+' · '+esc(b.idNumber)+(b.blacklist?'（黑名單）':'')+'</option>'; }).join('');
+    openModal(
+      '<div class="detail-head"><h2>新增借款申請</h2></div>' +
+      '<div class="form-row one"><label><span class="k">借款人 *</span><select id="nlBorrower">'+options+'</select></label></div>' +
+      '<div class="form-row"><label><span class="k">借款金額 *</span><input type="number" id="nlAmount" placeholder="例如 50000"></label>' +
+      '<label><span class="k">期數 *</span><input type="number" id="nlTerm" placeholder="例如 6"></label></div>' +
+      '<div class="form-row"><label><span class="k">利率（%）*</span><input type="number" id="nlRate" placeholder="例如 8"></label>' +
+      '<label><span class="k">場（分店／地區）</span><input type="text" id="nlBranch" placeholder="例如 旺角"></label></div>' +
+      '<div class="form-row one"><label><span class="k">備注</span><textarea id="nlRemarks" placeholder="內部備注（選填）"></textarea></label></div>' +
+      '<div class="hint" style="margin-bottom:12px;">送出後狀態為「申請中」，需經核准人（第二人）核准後，再由申請人確認放款。</div>' +
+      '<button class="btn" id="nlSaveBtn">送出申請</button> <button class="btn ghost" id="nlCancelBtn">取消</button>'
+    );
+    document.getElementById('nlCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('nlSaveBtn').addEventListener('click', function(){
+      var bid = val('nlBorrower');
+      var amount = Number(val('nlAmount')), term = Number(val('nlTerm')), rate = Number(val('nlRate'));
+      if(!bid || !amount || !term || !rate){ toast('請完整填寫借款資料'); return; }
+      var b = findBorrower(bid);
+      var l = {
+        id: uid('L'), borrowerId: bid, amount:amount, term:term, rate:rate,
+        applyDate: todayStr(), status:'申請中', createdBy: currentUserName(), approvedBy:'', approveNote:'',
+        collectMethod: b.collectMethod, branch: val('nlBranch').trim(), remarks: val('nlRemarks').trim(), schedule: []
+      };
+      state.loans.push(l);
+      if(state.view!=='loans'){
+        state.view='loans';
+        document.querySelectorAll('.nav-item').forEach(function(bt){ bt.classList.toggle('active', bt.dataset.view==='loans'); });
+      }
+      renderAll();
+      openLoanDetail(l.id);
+      toast('已送出借款申請：'+l.id+'（申請中）');
+    });
+  }
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
