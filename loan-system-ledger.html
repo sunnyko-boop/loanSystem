@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>借款總表（原型）</title>
+<style>
+  :root {
+    --paper: #f5f7f6;
+    --surface: #ffffff;
+    --surface-2: #eef2f0;
+    --ink: #142320;
+    --muted: #55655f;
+    --line: #d9e1dd;
+    --accent: #0e6e5a;
+    --accent-ink: #ffffff;
+    --accent-soft: #dcece6;
+    --warn: #a85a12;
+    --warn-soft: #f5e6d4;
+    --danger: #b23a2f;
+    --danger-soft: #f6ded9;
+    --neutral-soft: #e6e9e7;
+    --cyan: #0e7490;
+    --cyan-soft: #d8eef3;
+    --indigo: #33538f;
+    --indigo-soft: #dde3f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0f1613;
+      --surface: #161f1c;
+      --surface-2: #1c2723;
+      --ink: #edf4f1;
+      --muted: #97aaa2;
+      --line: #2a3733;
+      --accent: #4fd8b8;
+      --accent-ink: #0b1a16;
+      --accent-soft: #1c3a33;
+      --warn: #e2a15a;
+      --warn-soft: #3a2c1a;
+      --danger: #e2857a;
+      --danger-soft: #3c211e;
+      --neutral-soft: #26302c;
+      --cyan: #5fd0e8;
+      --cyan-soft: #163238;
+      --indigo: #9db2e8;
+      --indigo-soft: #232b42;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f1613; --surface: #161f1c; --surface-2: #1c2723; --ink: #edf4f1; --muted: #97aaa2;
+    --line: #2a3733; --accent: #4fd8b8; --accent-ink: #0b1a16; --accent-soft: #1c3a33;
+    --warn: #e2a15a; --warn-soft: #3a2c1a; --danger: #e2857a; --danger-soft: #3c211e; --neutral-soft: #26302c;
+    --cyan: #5fd0e8; --cyan-soft: #163238; --indigo: #9db2e8; --indigo-soft: #232b42;
+  }
+
+  * { box-sizing: border-box; }
+  /* 這個檔案跟其他 loan-system-*.html 不同，需要支援手機版（RWD），不要加 min-width 鎖死成 PC only */
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "IBM Plex Sans", "Noto Sans TC", -apple-system, sans-serif; font-size: 14px; line-height: 1.6;
+    overflow-x: hidden;
+  }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .app { display: grid; grid-template-columns: 216px minmax(0,1fr); min-height: 100vh; }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--line); padding: 18px 14px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+  .brand { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); padding: 6px 10px 18px; }
+  .brand b { display: block; color: var(--ink); font-size: 15px; font-family: "IBM Plex Sans","Noto Sans TC",sans-serif; margin-top: 2px; }
+  nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; background: transparent; border: none; text-align: left; padding: 10px 12px; border-radius: 8px; color: var(--muted); font-size: 13.5px; font-weight: 500; width: 100%; }
+  .nav-item .ic { font-size: 15px; }
+  .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+  .nav-item .badge { margin-left: auto; background: var(--danger); color: white; font-size: 10.5px; font-family: "IBM Plex Mono", monospace; padding: 1px 6px; border-radius: 999px; min-width: 16px; text-align: center; display: none; }
+  .nav-item .badge.on { display: inline-block; }
+  .sidebar-foot { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--muted); padding: 10px; border-top: 1px solid var(--line); }
+
+  .main { padding: 22px 26px 60px; min-width: 0; }
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .demo-badge { font-family: "IBM Plex Mono", monospace; font-size: 11px; background: var(--warn-soft); color: var(--warn); padding: 3px 9px; border-radius: 999px; }
+  .identity { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 12px; color: var(--muted); }
+  .identity .chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .stat .n { font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 600; }
+  .stat .l { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; margin-bottom: 20px; }
+  .panel h2 { font-size: 13px; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 14px; }
+  .detail-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+  .detail-head h2 { margin: 0; }
+
+  .toolbar { display: flex; gap: 22px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+  .toolbar .tb-field { display: flex; align-items: center; gap: 10px; }
+  .toolbar .tb-field .k { font-size: 14px; color: var(--muted); font-family: "IBM Plex Mono", monospace; white-space: nowrap; }
+  .toolbar .tb-field input, .toolbar .tb-field select { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; font-size: 15px; min-width: 200px; }
+  .toolbar .tb-field.date-field input { min-width: 160px; }
+  .toolbar .tb-actions { display: flex; gap: 10px; align-items: center; }
+  .toolbar .tb-actions .btn { padding: 12px 22px; font-size: 15px; }
+  .tb-sep { color: var(--muted); font-size: 14px; }
+
+  table { border-collapse: collapse; width: 100%; }
+  .table-wrap { border: 1px solid var(--line); border-radius: 10px; overflow: auto; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  thead th { background: var(--surface-2); font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; position: sticky; top: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  .empty-state { padding: 30px 10px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--neutral-soft); color: var(--muted); }
+  .pill[data-status="OCA"] { background: var(--danger-soft); color: var(--danger); }
+  .pill[data-status="完會已續"] { background: var(--cyan-soft); color: var(--cyan); }
+  .pill[data-status="完會"] { background: var(--accent-soft); color: var(--accent); }
+  .pill[data-status="完會不續"] { background: var(--indigo-soft); color: var(--indigo); }
+  .pill[data-status="還款中"] { background: var(--neutral-soft); color: var(--ink); }
+  .pill[data-status="黑名單"] { background: var(--danger-soft); color: var(--danger); }
+  .pill[data-status="啟用中"] { background: var(--accent-soft); color: var(--accent); }
+  .pill[data-status="已停用"] { background: var(--danger-soft); color: var(--danger); }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--danger-soft); color: var(--danger); margin-left: 4px; }
+
+
+  .detail-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin-bottom: 14px; }
+  .detail-fields > div { min-width: 0; overflow-wrap: anywhere; }
+  .detail-fields .k { font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", monospace; display: block; }
+
+  .btn { background: var(--accent); color: var(--accent-ink); border: none; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+  .btn.danger { background: var(--danger); color: white; }
+  .btn.small { padding: 4px 10px; font-size: 12px; }
+
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; margin-bottom: 16px; }
+  .form-row.one { grid-template-columns: 1fr; }
+  .form-row label { display: block; }
+  .form-row .k { display: block; font-size: 13.5px; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 6px; }
+  .form-row input, .form-row select, .form-row textarea { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 11px 14px; font-size: 15px; }
+  .form-row textarea { resize: vertical; min-height: 70px; }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; font-size: 12.5px; color: var(--muted); align-items: center; }
+  .legend .pill { font-size: 11px; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 30px; z-index: 50; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 30px 34px; width: min(900px, 94vw); max-height: 90vh; overflow: auto; font-size: 15.5px; }
+  .modal h2 { margin: 0; font-size: 22px; font-family: "IBM Plex Sans","Noto Sans TC",sans-serif; text-transform: none; letter-spacing: normal; color: var(--ink); }
+  .modal .btn { font-size: 15px; padding: 10px 20px; }
+  .modal .hint { font-size: 13px; }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 9px 18px; border-radius: 8px; font-size: 13px; z-index: 60; display: none; }
+
+  .app.hidden { display: none; }
+  .login-screen { position: fixed; inset: 0; background: var(--paper); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .login-screen.hidden { display: none; }
+  .login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 40px 44px; width: 400px; box-shadow: 0 12px 34px rgba(0,0,0,.10); }
+  .login-brand { font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: 0.04em; color: var(--muted); }
+  .login-brand b { display: block; font-family: "IBM Plex Sans","Noto Sans TC",sans-serif; font-size: 22px; color: var(--ink); margin-top: 4px; }
+  .login-sub { font-size: 13px; color: var(--muted); margin: 8px 0 24px; }
+  .login-card .lf { display: block; margin-bottom: 16px; }
+  .login-card .lf .k { display: block; font-size: 12px; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 6px; }
+  .login-card select, .login-card input { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 14.5px; color: var(--ink); }
+  .login-card .btn { width: 100%; padding: 11px; font-size: 15px; margin-top: 4px; }
+
+  /* ---- RWD：手機版（跟其他 PC-only 的 loan-system-*.html 不一樣，這份要支援窄螢幕） ---- */
+  @media (max-width: 900px) {
+    .app { display: block; }
+    .sidebar {
+      position: static; height: auto; width: 100%;
+      flex-direction: row; align-items: center; gap: 6px;
+      padding: 10px 12px; overflow-x: auto;
+    }
+    .brand { display: none; }
+    nav { flex-direction: row; flex: none; gap: 4px; }
+    .nav-item { width: auto; white-space: nowrap; padding: 8px 10px; }
+    .sidebar-foot { display: none; }
+    .main { padding: 14px 14px 40px; }
+    .topbar h1 { font-size: 17px; }
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .panel { padding: 16px; }
+    .detail-head { flex-direction: column; align-items: stretch; }
+    .detail-head > div { display: flex; flex-wrap: wrap; gap: 8px; }
+    .toolbar { gap: 12px; }
+    .toolbar .tb-field { flex-direction: column; align-items: stretch; width: 100%; }
+    .toolbar .tb-field input, .toolbar .tb-field select { min-width: 0; width: 100%; }
+    .tb-sep { display: none; }
+    .form-row, .form-row.one { grid-template-columns: 1fr; }
+    .modal { width: 96vw; padding: 18px 16px; }
+    th, td { padding: 8px 9px; font-size: 12.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">LOAN-OPS<b>借款總表</b></div>
+    <div class="login-sub">測試環境登入</div>
+    <label class="lf"><span class="k">登入帳號</span>
+      <select id="loginRole"></select>
+    </label>
+    <label class="lf"><span class="k">密碼</span><input type="password" id="loginPwd" placeholder="demo1234"></label>
+    <button class="btn" id="loginBtn">登入</button>
+    <div class="hint">示範環境，密碼輸入任意值即可登入（提示：demo1234）</div>
+  </div>
+</div>
+<div class="app hidden" id="app">
+  <div class="sidebar">
+    <div class="brand">LOAN-OPS<b>借款總表</b></div>
+    <nav>
+      <button class="nav-item active" data-view="ledger"><span class="ic">📒</span>借款總表</button>
+      <button class="nav-item" data-view="approvals"><span class="ic">✅</span>審批<span class="badge" id="apprBadge">0</span></button>
+      <button class="nav-item" data-view="notes"><span class="ic">📝</span>催收備註</button>
+      <button class="nav-item" data-view="blacklist"><span class="ic">🚫</span>黑名單</button>
+      <button class="nav-item" data-view="notify"><span class="ic">✉️</span>通知紀錄</button>
+      <button class="nav-item" data-view="accounts"><span class="ic">🔑</span>系統管理</button>
+    </nav>
+    <div class="sidebar-foot">v0.1 · 原型示範 · 無後端<br>另一條產品線，跟簡易放貸系統分開</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">借款總表</h1>
+      <span class="demo-badge">測試環境</span>
+      <div class="identity">
+        <span class="chip" id="whoChip"></span>
+        <button class="btn ghost small" id="logoutBtn">登出</button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal-backdrop" id="modalBg"><div class="modal" id="modalBox"></div></div>
+
+<script>
+(function(){
+  "use strict";
+
+  function esc(s){ s=(s===undefined||s===null)?'':String(s); return s.replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fmtMoney(n){ n=Number(n)||0; return 'HK$'+n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function pad(n){ return n<10?'0'+n:''+n; }
+  function pad5(n){ var s=''+n; while(s.length<5) s='0'+s; return s; }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function val(id){ var el=document.getElementById(id); return el?el.value:''; }
+  var toastTimer;
+  function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.style.display='none'; }, 2600); }
+  function closeModal(){ document.getElementById('modalBg').classList.remove('open'); document.getElementById('modalBox').innerHTML=''; }
+  function openModal(html){ document.getElementById('modalBox').innerHTML=html; document.getElementById('modalBg').classList.add('open'); }
+  document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target.id==='modalBg') closeModal(); });
+
+  var STATUS_LIST = ['還款中','完會','完會已續','完會不續','OCA'];
+  var ROLE_LABEL = {admin:'Admin', operator:'審核人', sales:'Sales'};
+  function canViewPhone(){ return state.role==='admin'; }
+  function canApprove(){ return state.role==='admin' || state.role==='operator'; }
+
+  var state = {
+    seq: 8,
+    noteSeq: 3,
+    userSeq: 3,
+    role: 'admin',
+    currentUserId: 'U-1001',
+    users: [
+      {id:'U-1001', name:'陳志明', role:'admin', active:true},
+      {id:'U-1002', name:'李慧珊', role:'operator', active:true},
+      {id:'U-1003', name:'黃俊賢', role:'sales', active:true}
+    ],
+    view: 'ledger',
+    ledgerQuery: {name:'', idNumber:'', dateFrom:'', dateTo:'', status:''},
+    noteQuery: {name:'', idNumber:'', dateFrom:'', dateTo:''},
+    blacklist: {
+      'E567890(1)': {name:'張偉明', reason:'完會不續，客人話唔再借，多次追收態度不佳。', date:'2026-06-05'}
+    },
+    pendingLoans: [],
+    notifications: [],
+    loans: [
+      {no:'PL-00001-01', date:'2026-04-22', type:'PL', nameEn:'CHAN CHI KEUNG', nameZh:'陳志強', hkid:'A123456(7)', phone:'91234567', amount:20000, dueBasis:'15', term:6, status:'還款中', branch:'1CO', agent:'MMK', teCount:3, remarks:''},
+      {no:'PL-00002-01', date:'2026-04-22', type:'PL', nameEn:'LEE MEI LING', nameZh:'李美玲', hkid:'B234567(8)', phone:'92345678', amount:15000, dueBasis:'月', term:4, status:'完會', branch:'2C0', agent:'BEN', teCount:1, remarks:''},
+      {no:'PL-00003-01', date:'2026-04-24', type:'PL', nameEn:'WONG CHUN KIT', nameZh:'黃俊傑', hkid:'C345678(9)', phone:'93456789', amount:8000, dueBasis:'15', term:3, status:'OCA', branch:'2C0', agent:'CHUN', teCount:2, remarks:'扣佣'},
+      {no:'PL-00004-01', date:'2026-04-27', type:'PL', nameEn:'LAM KA YAN', nameZh:'林嘉欣', hkid:'D456789(0)', phone:'94567890', amount:30000, dueBasis:'月', term:8, status:'完會已續', branch:'1C8', agent:'MMK', teCount:4, remarks:''},
+      {no:'PL-00005-01', date:'2026-04-28', type:'PL', nameEn:'CHEUNG WAI MING', nameZh:'張偉明', hkid:'E567890(1)', phone:'95678901', amount:10000, dueBasis:'15', term:5, status:'完會不續', branch:'2HA0', agent:'HA', teCount:1, remarks:'完會不續 22/6'},
+      {no:'PL-00006-01', date:'2026-04-30', type:'PL', nameEn:'CHOW TSZ YEUK', nameZh:'周芷若', hkid:'F678901(2)', phone:'96789012', amount:50000, dueBasis:'月', term:10, status:'還款中', branch:'1C1', agent:'BEN', teCount:6, remarks:''},
+      {no:'PL-00007-01', date:'2026-04-30', type:'PL', nameEn:'HO KA HO', nameZh:'何家豪', hkid:'G789012(3)', phone:'97890123', amount:12000, dueBasis:'15', term:3, status:'完會', branch:'2C5', agent:'中山', teCount:2, remarks:''},
+      {no:'PL-00008-01', date:'2026-05-04', type:'PL', nameEn:'TANG LAI YAN', nameZh:'鄧麗欣', hkid:'H890123(4)', phone:'98901234', amount:6000, dueBasis:'15', term:3, status:'OCA', branch:'2C0', agent:'藍天', teCount:1, remarks:'扣佣'}
+    ],
+    notes: [
+      {id:'N-0001', date:'2026-05-10', name:'陳志強', hkid:'A123456(7)', phone:'91234567', reason:'客人表示呢期較忙，已改約下週三上門收數。'},
+      {id:'N-0002', date:'2026-05-20', name:'張偉明', hkid:'E567890(1)', phone:'95678901', reason:'3條數到期未供，一直追緊。'},
+      {id:'N-0003', date:'2026-06-05', name:'張偉明', hkid:'E567890(1)', phone:'95678901', reason:'完會不續，客人話唔再借，已收回全部尾數。'}
+    ]
+  };
+
+  function findLoan(no){ return state.loans.filter(function(l){ return l.no===no; })[0]; }
+  function findNote(id){ return state.notes.filter(function(n){ return n.id===id; })[0]; }
+  function nextNo(){ state.seq++; return 'PL-'+pad5(state.seq)+'-01'; }
+  function nextNoteId(){ state.noteSeq++; var s=''+state.noteSeq; while(s.length<4) s='0'+s; return 'N-'+s; }
+  function isBlacklisted(hkid){ return !!state.blacklist[(hkid||'').toUpperCase()]; }
+  function findPending(id){ return state.pendingLoans.filter(function(p){ return p.id===id; })[0]; }
+  function nextPendingId(){ state.pendingSeq = (state.pendingSeq||0)+1; return 'AP-'+pad(state.pendingSeq); }
+
+  // ---------- 帳號（系統管理） ----------
+  function findUser(id){ return state.users.filter(function(u){ return u.id===id; })[0]; }
+  function currentUser(){ return findUser(state.currentUserId); }
+  function currentUserName(){ var u = currentUser(); return u ? u.name : ''; }
+  function nextUserId(){ state.userSeq++; return 'U-'+(1000+state.userSeq); }
+  function populateAccountSelect(sel){
+    sel.innerHTML = state.users.filter(function(u){ return u.active; }).map(function(u){
+      return '<option value="'+u.id+'">'+ROLE_LABEL[u.role]+'｜'+esc(u.name)+'</option>';
+    }).join('');
+  }
+  function refreshAccountSelects(){
+    populateAccountSelect(document.getElementById('loginRole'));
+  }
+
+  function matchNameId(nameZh, nameEn, hkid, nameQ, idQ){
+    var okName = !nameQ || (nameZh||'').indexOf(nameQ)>-1 || (nameEn||'').toUpperCase().indexOf(nameQ.toUpperCase())>-1;
+    var okId = !idQ || (hkid||'').toUpperCase().indexOf(idQ.toUpperCase())>-1;
+    return okName && okId;
+  }
+  function inDateRange(d, from, to){ if(from && d<from) return false; if(to && d>to) return false; return true; }
+
+  function filteredLoans(){
+    var q = state.ledgerQuery;
+    var list = state.loans;
+    if(q.name || q.idNumber) list = list.filter(function(l){ return matchNameId(l.nameZh, l.nameEn, l.hkid, q.name, q.idNumber); });
+    if(q.dateFrom || q.dateTo) list = list.filter(function(l){ return inDateRange(l.date, q.dateFrom, q.dateTo); });
+    if(q.status) list = list.filter(function(l){ return (l.status||'').toUpperCase().indexOf(q.status.toUpperCase())>-1; });
+    return list;
+  }
+  function filteredNotes(){
+    var q = state.noteQuery;
+    var list = state.notes;
+    if(q.name || q.idNumber) list = list.filter(function(n){ return matchNameId(n.name, '', n.hkid, q.name, q.idNumber); });
+    if(q.dateFrom || q.dateTo) list = list.filter(function(n){ return inDateRange(n.date, q.dateFrom, q.dateTo); });
+    return list;
+  }
+  function hasQueryValue(q){ return (q.name&&q.name.trim())||(q.idNumber&&q.idNumber.trim())||q.dateFrom||q.dateTo||q.status; }
+
+  // ---------- 查詢列（沿用簡易放貸系統的做法：姓名/身分證各自獨立、日期用起訖區間） ----------
+  function renderSearchToolbar(prefix, query, opts){
+    opts = opts || {};
+    var html = '<div class="toolbar">' +
+      '<label class="tb-field"><span class="k">姓名</span><input type="text" id="'+prefix+'Name" placeholder="輸入姓名關鍵字" value="'+esc(query.name||'')+'"></label>' +
+      '<label class="tb-field"><span class="k">身分證</span><input type="text" id="'+prefix+'Id" placeholder="輸入身分證關鍵字" value="'+esc(query.idNumber||'')+'"></label>' +
+      '<label class="tb-field date-field"><span class="k">日期（起）</span><input type="date" id="'+prefix+'DateFrom" value="'+esc(query.dateFrom||'')+'"></label>' +
+      '<span class="tb-sep">至</span>' +
+      '<label class="tb-field date-field"><span class="k">日期（迄）</span><input type="date" id="'+prefix+'DateTo" value="'+esc(query.dateTo||'')+'"></label>';
+    if(opts.status){
+      html += '<label class="tb-field"><span class="k">狀態</span><input type="text" id="'+prefix+'Status" placeholder="輸入狀態關鍵字" value="'+esc(query.status||'')+'"></label>';
+    }
+    html += '<div class="tb-actions"><button class="btn ghost" id="'+prefix+'SearchBtn">查詢</button>';
+    if(hasQueryValue(query)) html += '<button class="btn ghost" id="'+prefix+'ClearBtn">清除</button>';
+    html += '</div></div>';
+    return html;
+  }
+  function bindSearchToolbar(prefix, query, opts){
+    opts = opts || {};
+    function run(){
+      query.name = val(prefix+'Name').trim();
+      query.idNumber = val(prefix+'Id').trim();
+      query.dateFrom = val(prefix+'DateFrom');
+      query.dateTo = val(prefix+'DateTo');
+      if(opts.status) query.status = val(prefix+'Status');
+      renderAll();
+    }
+    var btn = document.getElementById(prefix+'SearchBtn'); if(btn) btn.addEventListener('click', run);
+    ['Name','Id','DateFrom','DateTo','Status'].forEach(function(suf){
+      var el = document.getElementById(prefix+suf);
+      if(el) el.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); run(); } });
+    });
+    var clearBtn = document.getElementById(prefix+'ClearBtn');
+    if(clearBtn) clearBtn.addEventListener('click', function(){ query.name=''; query.idNumber=''; query.dateFrom=''; query.dateTo=''; query.status=''; renderAll(); });
+  }
+
+  // ---------- 頁面 ----------
+  var TITLES = {ledger:'借款總表', approvals:'審批', notes:'催收備註', blacklist:'黑名單', notify:'通知紀錄', accounts:'系統管理'};
+
+  function renderAll(){
+    document.getElementById('pageTitle').textContent = TITLES[state.view];
+    document.getElementById('whoChip').textContent = ROLE_LABEL[state.role] + '：' + currentUserName();
+    document.querySelectorAll('.nav-item').forEach(function(b){
+      b.classList.toggle('active', b.dataset.view===state.view);
+      if(b.dataset.view==='accounts') b.style.display = state.role==='admin' ? '' : 'none';
+    });
+    var badge = document.getElementById('apprBadge');
+    badge.textContent = state.pendingLoans.length; badge.classList.toggle('on', state.pendingLoans.length>0);
+    var el = document.getElementById('content');
+    if(state.view==='ledger') el.innerHTML = renderLedger();
+    else if(state.view==='approvals') el.innerHTML = renderApprovals();
+    else if(state.view==='notes') el.innerHTML = renderNotes();
+    else if(state.view==='blacklist') el.innerHTML = renderBlacklist();
+    else if(state.view==='notify') el.innerHTML = renderNotify();
+    else el.innerHTML = renderAccounts();
+    bindViewEvents();
+  }
+
+  function renderLedger(){
+    var list = filteredLoans();
+    var total = state.loans.length;
+    var byStatus = {};
+    STATUS_LIST.forEach(function(s){ byStatus[s] = state.loans.filter(function(l){ return l.status===s; }).length; });
+    var totalAmt = state.loans.reduce(function(s,l){ return s+l.amount; }, 0);
+
+    var html = '<div class="stats">' +
+      '<div class="stat"><div class="n">'+total+'</div><div class="l">總筆數</div></div>' +
+      '<div class="stat"><div class="n">'+fmtMoney(totalAmt)+'</div><div class="l">總金額</div></div>' +
+      '<div class="stat"><div class="n">'+byStatus['還款中']+'</div><div class="l">還款中</div></div>' +
+      '<div class="stat"><div class="n">'+byStatus['OCA']+'</div><div class="l">OCA</div></div>' +
+    '</div>';
+
+    html += '<div class="panel"><div class="detail-head"><h2>借款總表</h2><div>'+renderExportGroup('ledger')+' <button class="btn small" id="addLoanBtn">＋ 新增借款</button></div></div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">一行＝一筆借款，直接包含借款人資料（跟原始 Excel「PL 表」一樣的排法）；新增借款要先經「審批」核准才會出現在這裡，催收備註另一頁記錄。</div>';
+    html += renderSearchToolbar('ledger', state.ledgerQuery, {status:true});
+    if(hasQueryValue(state.ledgerQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+list.length+' 筆</div>';
+    html += '<div class="legend">狀態：' + STATUS_LIST.map(function(s){ return '<span class="pill" data-status="'+s+'">'+s+'</span>'; }).join(' ') + '</div>';
+
+    if(!list.length) html += '<div class="empty-state">'+(state.loans.length?'查無符合的借款紀錄':'尚無借款紀錄')+'</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr>' +
+        '<th>日期</th><th>編號</th><th>類型</th><th>姓名</th><th>身分證</th><th>電話</th><th>金額</th><th>還款日</th><th>期數</th><th>狀態</th><th>場</th><th>備注</th><th>業務</th><th>TE數</th><th></th>' +
+        '</tr></thead><tbody>';
+      list.slice().reverse().forEach(function(l){
+        html += '<tr>' +
+          '<td>'+esc(l.date)+'</td><td>'+esc(l.no)+'</td><td>'+esc(l.type)+'</td>' +
+          '<td>'+esc(l.nameEn)+' '+esc(l.nameZh)+(isBlacklisted(l.hkid)?' <span class="tag">黑名單</span>':'')+'</td><td>'+esc(l.hkid)+'</td><td>'+(canViewPhone()?esc(l.phone):maskPhone())+'</td>' +
+          '<td>'+fmtMoney(l.amount)+'</td><td>'+esc(l.dueBasis)+'</td><td>'+l.term+'</td>' +
+          '<td><span class="pill" data-status="'+esc(l.status)+'">'+esc(l.status)+'</span></td>' +
+          '<td>'+esc(l.branch)+'</td>' +
+          '<td style="white-space:normal;max-width:180px;">'+esc(l.remarks||'—')+'</td>' +
+          '<td>'+esc(l.agent)+'</td><td>'+l.teCount+'</td>' +
+          '<td><button class="btn small ghost" data-editloan="'+esc(l.no)+'">編輯</button> ' +
+          '<button class="btn small ghost" data-sendnotify="'+esc(l.no)+'">發通知</button></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderApprovals(){
+    var pending = state.pendingLoans;
+    var html = '<div class="panel"><h2>待審批借款（'+pending.length+'）</h2>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">'+(canApprove()?'新增借款要先送到這裡，經核准後才會正式編號並出現在借款總表。':'審核／拒絕僅限 Admin 與審核人操作，此身份只能查看與送件（新增借款）。')+'</div>';
+    if(!pending.length) html += '<div class="empty-state">目前沒有待審批的借款</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>日期</th><th>姓名</th><th>身分證</th><th>電話</th><th>金額</th><th>期數</th><th>送出人</th><th></th></tr></thead><tbody>';
+      pending.forEach(function(p){
+        html += '<tr><td>'+esc(p.date)+'</td><td>'+esc(p.nameEn)+' '+esc(p.nameZh)+(isBlacklisted(p.hkid)?' <span class="tag">黑名單</span>':'')+'</td>' +
+          '<td>'+esc(p.hkid)+'</td><td>'+(canViewPhone()?esc(p.phone):maskPhone())+'</td><td>'+fmtMoney(p.amount)+'</td><td>'+p.term+'</td><td>'+esc(p.submittedBy)+'</td>' +
+          '<td>'+(canApprove()?'<button class="btn small" data-approveloan="'+esc(p.id)+'">核准</button> <button class="btn small danger" data-rejectloan="'+esc(p.id)+'">拒絕</button>':'<span class="pill">送審中</span>')+'</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderNotes(){
+    var list = filteredNotes();
+    var html = '<div class="panel"><div class="detail-head"><h2>催收備註（'+state.notes.length+'）</h2><div>'+renderExportGroup('notes')+' <button class="btn small" id="addNoteBtn">＋ 新增備註</button></div></div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">對應原始 Excel 的「Reason」欄位：按日期記錄每次催收/聯絡狀況，跟借款總表用身分證關聯，不綁定單一借款編號。</div>';
+    html += renderSearchToolbar('notes', state.noteQuery, {});
+    if(hasQueryValue(state.noteQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+list.length+' 筆</div>';
+    if(!list.length) html += '<div class="empty-state">'+(state.notes.length?'查無符合的備註':'尚無備註')+'</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>日期</th><th>姓名</th><th>身分證</th><th>電話</th><th>內容</th><th></th></tr></thead><tbody>';
+      list.slice().reverse().forEach(function(n){
+        html += '<tr><td>'+esc(n.date)+'</td><td>'+esc(n.name)+(isBlacklisted(n.hkid)?' <span class="tag">黑名單</span>':'')+'</td><td>'+esc(n.hkid)+'</td><td>'+(canViewPhone()?esc(n.phone):maskPhone())+'</td>' +
+          '<td style="white-space:normal;">'+esc(n.reason)+'</td>' +
+          '<td><button class="btn small ghost" data-editnote="'+esc(n.id)+'">編輯</button> ' +
+          '<button class="btn small '+(isBlacklisted(n.hkid)?'ghost':'danger')+'" data-toggleblack="'+esc(n.hkid)+'" data-blackname="'+esc(n.name)+'">'+(isBlacklisted(n.hkid)?'解除黑名單':'加入黑名單')+'</button></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderBlacklist(){
+    var blEntries = Object.keys(state.blacklist);
+    var html = '<div class="panel"><h2>黑名單（'+blEntries.length+'）</h2>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">在「催收備註」頁按「加入黑名單／解除黑名單」會同步到這裡；借款總表與催收備註的姓名旁也會顯示黑名單標籤。</div>';
+    if(!blEntries.length) html += '<div class="empty-state">目前沒有黑名單借款人</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>身分證</th><th>姓名</th><th>原因</th><th>日期</th><th></th></tr></thead><tbody>';
+      blEntries.forEach(function(hkid){
+        var b = state.blacklist[hkid];
+        html += '<tr><td>'+esc(hkid)+'</td><td>'+esc(b.name||'—')+'</td><td style="white-space:normal;">'+esc(b.reason)+'</td><td>'+esc(b.date)+'</td>' +
+          '<td><button class="btn small ghost" data-toggleblack="'+esc(hkid)+'" data-blackname="'+esc(b.name||'')+'">解除黑名單</button></td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderNotify(){
+    var list = state.notifications;
+    var html = '<div class="panel"><h2>通知紀錄（'+list.length+'）</h2>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">在借款總表按「發通知」模擬發送繳款提醒／逾期通知／入帳通知，紀錄會列在這裡（不會真的寄信/發簡訊）。</div>';
+    if(!list.length) html += '<div class="empty-state">尚無通知紀錄</div>';
+    else {
+      html += '<div class="table-wrap"><table><thead><tr><th>時間</th><th>姓名</th><th>身分證</th><th>類型</th><th>管道</th><th>收件</th><th>內容</th><th>發送人</th></tr></thead><tbody>';
+      list.slice().reverse().forEach(function(n){
+        html += '<tr><td>'+esc(n.time)+'</td><td>'+esc(n.name)+'</td><td>'+esc(n.hkid)+'</td><td>'+esc(n.kind)+'</td>' +
+          '<td>'+(n.channel==='mail'?'Mail':'簡訊')+'</td><td>'+(canViewPhone()||n.channel==='mail'?esc(n.to):maskPhone())+'</td>' +
+          '<td style="white-space:normal;max-width:260px;">'+esc(n.body)+'</td><td>'+esc(n.by)+'</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderAccounts(){
+    var html = '<div class="panel"><div class="detail-head"><h2>帳號清單</h2><button class="btn small" id="addAccountBtn">＋ 新增帳號</button></div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">Admin 可在這裡建立帳號並指派角色（Admin／審核人／Sales）；停用的帳號無法用來登入。</div>';
+    html += '<div class="table-wrap"><table><thead><tr><th>姓名</th><th>角色</th><th>狀態</th><th></th></tr></thead><tbody>';
+    state.users.forEach(function(u){
+      var isSelf = u.id === state.currentUserId;
+      html += '<tr>' +
+        '<td>'+esc(u.name)+(isSelf?' <span class="hint" style="display:inline">（目前登入）</span>':'')+'</td>' +
+        '<td>'+esc(ROLE_LABEL[u.role])+'</td>' +
+        '<td>'+(u.active ? '<span class="pill" data-status="啟用中">啟用中</span>' : '<span class="pill" data-status="已停用">已停用</span>')+'</td>' +
+        '<td><button class="btn small ghost" data-editaccount="'+u.id+'">編輯</button> ' +
+        '<button class="btn small ghost" data-toggleaccount="'+u.id+'"'+(isSelf?' disabled':'')+'>'+(u.active?'停用':'啟用')+'</button></td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+    return html;
+  }
+
+  function openAddAccount(){
+    openModal(
+      '<div class="detail-head"><h2>新增帳號</h2></div>' +
+      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="acName"></label>' +
+      '<label><span class="k">角色 *</span><select id="acRole"><option value="admin">Admin</option><option value="operator">審核人</option><option value="sales">Sales</option></select></label></div>' +
+      '<div class="hint" style="margin-bottom:12px;">示範環境不設密碼，登入畫面選這個帳號、密碼隨便輸入即可登入。</div>' +
+      '<button class="btn" id="acSaveBtn">儲存</button> <button class="btn ghost" id="acCancelBtn">取消</button>'
+    );
+    document.getElementById('acCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('acSaveBtn').addEventListener('click', function(){
+      var name = val('acName').trim();
+      if(!name){ toast('請填寫姓名'); return; }
+      state.users.push({id: nextUserId(), name:name, role: val('acRole'), active:true});
+      closeModal(); renderAll(); refreshAccountSelects(); toast('已新增帳號：'+name);
+    });
+  }
+
+  function openEditAccount(id){
+    var u = findUser(id);
+    openModal(
+      '<div class="detail-head"><h2>編輯帳號：'+esc(u.name)+'</h2></div>' +
+      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="acName" value="'+esc(u.name)+'"></label>' +
+      '<label><span class="k">角色 *</span><select id="acRole">' +
+      '<option value="admin"'+(u.role==='admin'?' selected':'')+'>Admin</option>' +
+      '<option value="operator"'+(u.role==='operator'?' selected':'')+'>審核人</option>' +
+      '<option value="sales"'+(u.role==='sales'?' selected':'')+'>Sales</option>' +
+      '</select></label></div>' +
+      '<button class="btn" id="acSaveBtn">儲存</button> <button class="btn ghost" id="acCancelBtn">取消</button>'
+    );
+    document.getElementById('acCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('acSaveBtn').addEventListener('click', function(){
+      var name = val('acName').trim();
+      if(!name){ toast('請填寫姓名'); return; }
+      u.name = name; u.role = val('acRole');
+      if(u.id === state.currentUserId){
+        state.role = u.role;
+        if(state.role!=='admin' && state.view==='accounts') state.view = 'ledger';
+      }
+      closeModal(); renderAll(); refreshAccountSelects(); toast('已更新帳號資料');
+    });
+  }
+
+  function toggleAccountActive(id){
+    var u = findUser(id);
+    if(id === state.currentUserId){ toast('不可停用自己目前登入的帳號'); return; }
+    u.active = !u.active;
+    renderAll(); refreshAccountSelects();
+    toast(u.active ? '已啟用帳號：'+u.name : '已停用帳號：'+u.name);
+  }
+
+  // ---------- 事件綁定 ----------
+  function bindViewEvents(){
+    var el = document.getElementById('content');
+    el.querySelectorAll('[data-editloan]').forEach(function(t){ t.addEventListener('click', function(){ openEditLoan(t.dataset.editloan); }); });
+    el.querySelectorAll('[data-editnote]').forEach(function(t){ t.addEventListener('click', function(){ openEditNote(t.dataset.editnote); }); });
+    el.querySelectorAll('[data-toggleblack]').forEach(function(t){ t.addEventListener('click', function(){ toggleBlacklist(t.dataset.toggleblack, t.dataset.blackname); }); });
+    el.querySelectorAll('[data-approveloan]').forEach(function(t){ t.addEventListener('click', function(){ decidePending(t.dataset.approveloan, true); }); });
+    el.querySelectorAll('[data-rejectloan]').forEach(function(t){ t.addEventListener('click', function(){ decidePending(t.dataset.rejectloan, false); }); });
+    el.querySelectorAll('[data-sendnotify]').forEach(function(t){ t.addEventListener('click', function(){ openSendNotify(t.dataset.sendnotify); }); });
+    var addL = document.getElementById('addLoanBtn'); if(addL) addL.addEventListener('click', openAddLoan);
+    var addN = document.getElementById('addNoteBtn'); if(addN) addN.addEventListener('click', openAddNote);
+    var addA = document.getElementById('addAccountBtn'); if(addA) addA.addEventListener('click', openAddAccount);
+    el.querySelectorAll('[data-editaccount]').forEach(function(t){ t.addEventListener('click', function(){ openEditAccount(t.dataset.editaccount); }); });
+    el.querySelectorAll('[data-toggleaccount]').forEach(function(t){ t.addEventListener('click', function(){ toggleAccountActive(t.dataset.toggleaccount); }); });
+    el.querySelectorAll('[data-export]').forEach(function(t){ t.addEventListener('click', function(){ doExport(t.dataset.export, t.dataset.fmt); }); });
+    bindSearchToolbar('ledger', state.ledgerQuery, {status:true});
+    bindSearchToolbar('notes', state.noteQuery, {});
+  }
+
+  function loanFormFields(l){
+    var isEdit = !!l;
+    l = l || {date: todayStr(), type:'PL', nameEn:'', nameZh:'', hkid:'', phone:'', amount:'', dueBasis:'15', term:'', status:'還款中', branch:'', agent:'', teCount:0, remarks:''};
+    var phoneLocked = isEdit && !canViewPhone();
+    var phoneField = phoneLocked
+      ? '<input type="text" id="lnPhone" value="****" disabled><div class="hint">只有 Admin 可查看／修改電話</div>'
+      : '<input type="text" id="lnPhone" value="'+esc(l.phone)+'">';
+    return '<div class="form-row"><label><span class="k">日期 *</span><input type="date" id="lnDate" value="'+esc(l.date)+'"></label>' +
+      '<label><span class="k">類型</span><input type="text" id="lnType" value="'+esc(l.type)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">英文姓名 *</span><input type="text" id="lnNameEn" value="'+esc(l.nameEn)+'"></label>' +
+      '<label><span class="k">中文姓名 *</span><input type="text" id="lnNameZh" value="'+esc(l.nameZh)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">身分證 *</span><input type="text" id="lnHkid" placeholder="例如 A123456(7)" value="'+esc(l.hkid)+'"></label>' +
+      '<label><span class="k">電話 *</span>'+phoneField+'</label></div>' +
+      '<div class="form-row"><label><span class="k">金額 *</span><input type="number" id="lnAmount" value="'+esc(l.amount)+'"></label>' +
+      '<label><span class="k">還款日</span><input type="text" id="lnDueBasis" placeholder="例如 15 或 月" value="'+esc(l.dueBasis)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">期數 *</span><input type="number" id="lnTerm" value="'+esc(l.term)+'"></label>' +
+      '<label><span class="k">狀態</span><input type="text" id="lnStatus" placeholder="例如 還款中／完會／完會已續／完會不續／OCA" value="'+esc(l.status)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">場（分店/地區）</span><input type="text" id="lnBranch" value="'+esc(l.branch)+'"></label>' +
+      '<label><span class="k">業務／介紹人</span><input type="text" id="lnAgent" value="'+esc(l.agent)+'"></label></div>' +
+      '<div class="form-row one"><label><span class="k">備注</span><textarea id="lnRemarks">'+esc(l.remarks)+'</textarea></label></div>' +
+      '<div class="form-row one"><label><span class="k">TE數</span><input type="number" id="lnTeCount" value="'+esc(l.teCount)+'"></label></div>';
+  }
+
+  function readLoanForm(originalPhone){
+    var phoneLocked = originalPhone!==undefined && !canViewPhone();
+    return {
+      date: val('lnDate'), type: val('lnType'), nameEn: val('lnNameEn').trim().toUpperCase(), nameZh: val('lnNameZh').trim(),
+      hkid: val('lnHkid').trim().toUpperCase(), phone: phoneLocked ? originalPhone : val('lnPhone').trim(), amount: Number(val('lnAmount')),
+      dueBasis: val('lnDueBasis'), term: Number(val('lnTerm')), status: val('lnStatus'),
+      branch: val('lnBranch').trim(), agent: val('lnAgent').trim(), teCount: Number(val('lnTeCount'))||0, remarks: val('lnRemarks').trim()
+    };
+  }
+  function validLoanForm(f){ return f.date && f.nameEn && f.nameZh && f.hkid && f.phone && f.amount && f.term; }
+
+  function decidePending(id, approve){
+    if(!canApprove()){ toast('無審核權限'); return; }
+    var p = findPending(id);
+    if(!p) return;
+    state.pendingLoans = state.pendingLoans.filter(function(x){ return x.id!==id; });
+    if(approve){
+      var f = {}; for(var k in p){ if(k!=='id' && k!=='submittedBy') f[k]=p[k]; }
+      f.no = nextNo();
+      state.loans.push(f);
+      renderAll(); toast('已核准並編號：'+f.no);
+    } else {
+      renderAll(); toast('已拒絕借款申請：'+id);
+    }
+  }
+
+  function notifTemplate(kind, name, extra){
+    if(kind==='繳款提醒') return name+' 您好，借款尚有未繳款項，應繳 '+fmtMoney(extra.amount)+'，請準時繳款。';
+    if(kind==='逾期通知') return name+' 您好，借款已逾期，欠款 '+fmtMoney(extra.amount)+'，請盡快繳清。';
+    return name+' 您好，已收到您的還款 '+fmtMoney(extra.amount)+'，感謝繳款。';
+  }
+  function openSendNotify(no){
+    var l = findLoan(no);
+    openModal(
+      '<div class="detail-head"><h2>發送通知：'+esc(l.nameEn)+' '+esc(l.nameZh)+'</h2></div>' +
+      '<div class="form-row"><label><span class="k">類型</span><select id="ntfKind"><option>繳款提醒</option><option>逾期通知</option><option>入帳通知</option></select></label>' +
+      '<label><span class="k">管道</span><select id="ntfChannel"><option value="sms">簡訊</option><option value="mail">Mail</option></select></label></div>' +
+      '<button class="btn" id="ntfSendBtn">確認發送</button> <button class="btn ghost" id="ntfCancelBtn">取消</button>'
+    );
+    document.getElementById('ntfCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('ntfSendBtn').addEventListener('click', function(){
+      var kind = val('ntfKind'), channel = val('ntfChannel');
+      state.notifications.push({
+        time: todayStr()+' '+pad(new Date().getHours())+':'+pad(new Date().getMinutes()),
+        name: l.nameEn+' '+l.nameZh, hkid: l.hkid, kind: kind, channel: channel,
+        to: channel==='mail' ? '（未留電郵，示範用固定文字）' : l.phone,
+        body: notifTemplate(kind, l.nameZh||l.nameEn, {amount:l.amount}),
+        by: currentUserName()
+      });
+      closeModal(); renderAll(); toast('已模擬發送「'+kind+'」（'+(channel==='mail'?'Mail':'簡訊')+'）');
+    });
+  }
+
+  function openAddLoan(){
+    openModal(
+      '<div class="detail-head"><h2>新增借款</h2></div>' + loanFormFields() +
+      '<button class="btn" id="lnSaveBtn">儲存</button> <button class="btn ghost" id="lnCancelBtn">取消</button>'
+    );
+    document.getElementById('lnCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('lnSaveBtn').addEventListener('click', function(){
+      var f = readLoanForm();
+      if(!validLoanForm(f)){ toast('請完整填寫必填欄位（日期／姓名／身分證／電話／金額／期數）'); return; }
+      f.id = nextPendingId();
+      f.submittedBy = currentUserName();
+      state.pendingLoans.push(f);
+      closeModal(); renderAll(); toast('已送出借款申請：'+f.id+'（待審批）');
+    });
+  }
+
+  function openEditLoan(no){
+    var l = findLoan(no);
+    openModal(
+      '<div class="detail-head"><h2>編輯借款：'+esc(l.no)+'</h2></div>' + loanFormFields(l) +
+      '<button class="btn" id="lnSaveBtn">儲存</button> <button class="btn ghost" id="lnCancelBtn">取消</button> ' +
+      '<button class="btn danger" id="lnDeleteBtn" style="float:right;">刪除此筆</button>'
+    );
+    document.getElementById('lnCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('lnSaveBtn').addEventListener('click', function(){
+      var f = readLoanForm(l.phone);
+      if(!validLoanForm(f)){ toast('請完整填寫必填欄位（日期／姓名／身分證／電話／金額／期數）'); return; }
+      f.no = l.no;
+      var idx = state.loans.indexOf(l);
+      state.loans[idx] = f;
+      closeModal(); renderAll(); toast('已更新借款：'+f.no);
+    });
+    document.getElementById('lnDeleteBtn').addEventListener('click', function(){
+      state.loans = state.loans.filter(function(x){ return x.no!==l.no; });
+      closeModal(); renderAll(); toast('已刪除借款：'+l.no);
+    });
+  }
+
+  function noteFormFields(n){
+    var isEdit = !!n;
+    n = n || {date: todayStr(), name:'', hkid:'', phone:'', reason:''};
+    var phoneLocked = isEdit && !canViewPhone();
+    var phoneField = phoneLocked
+      ? '<input type="text" id="ntPhone" value="****" disabled><div class="hint">只有 Admin 可查看／修改電話</div>'
+      : '<input type="text" id="ntPhone" value="'+esc(n.phone)+'">';
+    return '<div class="form-row"><label><span class="k">日期 *</span><input type="date" id="ntDate" value="'+esc(n.date)+'"></label>' +
+      '<label><span class="k">姓名 *</span><input type="text" id="ntName" value="'+esc(n.name)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">身分證 *</span><input type="text" id="ntHkid" placeholder="例如 A123456(7)" value="'+esc(n.hkid)+'"></label>' +
+      '<label><span class="k">電話</span>'+phoneField+'</label></div>' +
+      '<div class="form-row one"><label><span class="k">內容 *</span><textarea id="ntReason" placeholder="例如：客人表示呢期較忙，已改約下週三上門收數">'+esc(n.reason)+'</textarea></label></div>';
+  }
+  function readNoteForm(originalPhone){
+    var phoneLocked = originalPhone!==undefined && !canViewPhone();
+    return {
+      date: val('ntDate'), name: val('ntName').trim(), hkid: val('ntHkid').trim().toUpperCase(),
+      phone: phoneLocked ? originalPhone : val('ntPhone').trim(), reason: val('ntReason').trim()
+    };
+  }
+  function validNoteForm(f){ return f.date && f.name && f.hkid && f.reason; }
+
+  function openAddNote(){
+    openModal(
+      '<div class="detail-head"><h2>新增催收備註</h2></div>' + noteFormFields() +
+      '<button class="btn" id="ntSaveBtn">儲存</button> <button class="btn ghost" id="ntCancelBtn">取消</button>'
+    );
+    document.getElementById('ntCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('ntSaveBtn').addEventListener('click', function(){
+      var f = readNoteForm();
+      if(!validNoteForm(f)){ toast('請完整填寫日期、姓名、身分證與內容'); return; }
+      f.id = nextNoteId();
+      state.notes.push(f);
+      closeModal(); renderAll(); toast('已新增備註');
+    });
+  }
+
+  function openEditNote(id){
+    var n = findNote(id);
+    openModal(
+      '<div class="detail-head"><h2>編輯備註</h2></div>' + noteFormFields(n) +
+      '<button class="btn" id="ntSaveBtn">儲存</button> <button class="btn ghost" id="ntCancelBtn">取消</button> ' +
+      '<button class="btn danger" id="ntDeleteBtn" style="float:right;">刪除此筆</button>'
+    );
+    document.getElementById('ntCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('ntSaveBtn').addEventListener('click', function(){
+      var f = readNoteForm(n.phone);
+      if(!validNoteForm(f)){ toast('請完整填寫日期、姓名、身分證與內容'); return; }
+      f.id = n.id;
+      var idx = state.notes.indexOf(n);
+      state.notes[idx] = f;
+      closeModal(); renderAll(); toast('已更新備註');
+    });
+    document.getElementById('ntDeleteBtn').addEventListener('click', function(){
+      state.notes = state.notes.filter(function(x){ return x.id!==n.id; });
+      closeModal(); renderAll(); toast('已刪除備註');
+    });
+  }
+
+  function toggleBlacklist(hkid, name){
+    if(isBlacklisted(hkid)){
+      delete state.blacklist[hkid.toUpperCase()];
+      renderAll(); toast('已解除黑名單：'+(name||hkid));
+      return;
+    }
+    openModal(
+      '<div class="detail-head"><h2>加入黑名單：'+esc(name||hkid)+'</h2></div>' +
+      '<div class="form-row one"><label><span class="k">原因 *</span><textarea id="blReason" placeholder="例如：拖數失聯、多次逾期不還"></textarea></label></div>' +
+      '<button class="btn danger" id="blSaveBtn">確定加入黑名單</button> <button class="btn ghost" id="blCancelBtn">取消</button>'
+    );
+    document.getElementById('blCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('blSaveBtn').addEventListener('click', function(){
+      var reason = val('blReason').trim();
+      if(!reason){ toast('請填寫原因'); return; }
+      state.blacklist[hkid.toUpperCase()] = {name:name||'', reason:reason, date:todayStr()};
+      closeModal(); renderAll(); toast('已加入黑名單：'+(name||hkid));
+    });
+  }
+
+  document.querySelectorAll('.nav-item').forEach(function(btn){
+    btn.addEventListener('click', function(){ state.view = btn.dataset.view; closeModal(); renderAll(); });
+  });
+  function doLogin(){
+    state.currentUserId = val('loginRole');
+    state.role = currentUser().role;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    renderAll();
+    toast('登入成功：'+ROLE_LABEL[state.role]+' '+currentUserName());
+  }
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('loginPwd').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    closeModal();
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginPwd').value = '';
+    refreshAccountSelects();
+  });
+  refreshAccountSelects();
+
+  // ---------- 匯出：Excel（真正的 .xlsx）／PDF（列印預覽） ----------
+  function maskPhone(){ return '****'; }
+  function getExportData(kind){
+    if(kind==='ledger'){
+      var list = filteredLoans();
+      return {
+        title: '借款總表',
+        headers: ['日期','編號','類型','英文姓名','中文姓名','身分證','電話','金額','還款日','期數','狀態','場','備注','業務','TE數'],
+        rows: list.map(function(l){ return [l.date,l.no,l.type,l.nameEn,l.nameZh,l.hkid,canViewPhone()?l.phone:maskPhone(),l.amount,l.dueBasis,l.term,l.status,l.branch,l.remarks,l.agent,l.teCount]; })
+      };
+    }
+    var nlist = filteredNotes();
+    return {
+      title: '催收備註',
+      headers: ['日期','姓名','身分證','電話','內容'],
+      rows: nlist.map(function(n){ return [n.date,n.name,n.hkid,canViewPhone()?n.phone:maskPhone(),n.reason]; })
+    };
+  }
+  function doExport(kind, fmt){
+    var d = getExportData(kind);
+    if(!d.rows.length){ toast('沒有可匯出的資料'); return; }
+    if(fmt==='xlsx') exportExcel(d.title+'_'+todayStr()+'.xlsx', d.headers, d.rows);
+    else if(fmt==='pdf') exportPDF(d.title, d.headers, d.rows);
+  }
+  function renderExportGroup(kind){
+    return '<span class="hint" style="margin-right:2px;">匯出：</span>' +
+      '<button class="btn small ghost" data-export="'+kind+'" data-fmt="xlsx">Excel</button>' +
+      '<button class="btn small ghost" data-export="'+kind+'" data-fmt="pdf">PDF</button>';
+  }
+
+  // ---- 純前端產生真正的 .xlsx（OOXML／ZIP，store 不壓縮＋CRC32，不依賴任何函式庫） ----
+  var CRC_TABLE = (function(){
+    var table = [];
+    for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++){ c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); } table[n]=c>>>0; }
+    return table;
+  })();
+  function crc32(bytes){ var crc=0xFFFFFFFF; for(var i=0;i<bytes.length;i++){ crc=CRC_TABLE[(crc^bytes[i])&0xFF]^(crc>>>8); } return (crc^0xFFFFFFFF)>>>0; }
+  function strToBytes(str){ return new TextEncoder().encode(str); }
+  function buildZip(files){
+    var localParts=[], centralParts=[], offset=0;
+    files.forEach(function(f){
+      var nameBytes = strToBytes(f.name), data = f.data;
+      var crc = crc32(data), size = data.length;
+      var lh = new Uint8Array(30+nameBytes.length); var ldv = new DataView(lh.buffer);
+      ldv.setUint32(0,0x04034b50,true); ldv.setUint16(4,20,true); ldv.setUint16(6,0,true);
+      ldv.setUint16(8,0,true); ldv.setUint16(10,0,true); ldv.setUint16(12,0x21,true);
+      ldv.setUint32(14,crc,true); ldv.setUint32(18,size,true); ldv.setUint32(22,size,true);
+      ldv.setUint16(26,nameBytes.length,true); ldv.setUint16(28,0,true);
+      lh.set(nameBytes,30); localParts.push(lh,data);
+
+      var ch = new Uint8Array(46+nameBytes.length); var cdv = new DataView(ch.buffer);
+      cdv.setUint32(0,0x02014b50,true); cdv.setUint16(4,20,true); cdv.setUint16(6,20,true);
+      cdv.setUint16(8,0,true); cdv.setUint16(10,0,true); cdv.setUint16(12,0,true); cdv.setUint16(14,0x21,true);
+      cdv.setUint32(16,crc,true); cdv.setUint32(20,size,true); cdv.setUint32(24,size,true);
+      cdv.setUint16(28,nameBytes.length,true); cdv.setUint16(30,0,true); cdv.setUint16(32,0,true);
+      cdv.setUint16(34,0,true); cdv.setUint16(36,0,true); cdv.setUint32(38,0,true); cdv.setUint32(42,offset,true);
+      ch.set(nameBytes,46); centralParts.push(ch);
+      offset += lh.length + data.length;
+    });
+    var centralSize = centralParts.reduce(function(s,p){ return s+p.length; }, 0);
+    var end = new Uint8Array(22); var edv = new DataView(end.buffer);
+    edv.setUint32(0,0x06054b50,true); edv.setUint16(4,0,true); edv.setUint16(6,0,true);
+    edv.setUint16(8,files.length,true); edv.setUint16(10,files.length,true);
+    edv.setUint32(12,centralSize,true); edv.setUint32(16,offset,true); edv.setUint16(20,0,true);
+    return localParts.concat(centralParts).concat([end]);
+  }
+  function xmlEscape(v){ v=(v===undefined||v===null)?'':String(v); return v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
+  function colName(n){ var s=''; while(n>0){ var m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+  function buildSheetXML(headers, rows){
+    var allRows = [headers].concat(rows);
+    var xmlRows = allRows.map(function(r, ri){
+      var cells = r.map(function(v, ci){
+        var ref = colName(ci+1)+(ri+1);
+        return '<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xmlEscape(v)+'</t></is></c>';
+      }).join('');
+      return '<row r="'+(ri+1)+'">'+cells+'</row>';
+    }).join('');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+xmlRows+'</sheetData></worksheet>';
+  }
+  function exportExcel(filename, headers, rows){
+    var sheetXml = buildSheetXML(headers, rows);
+    var contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+      '</Types>';
+    var rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      '</Relationships>';
+    var workbookXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>';
+    var workbookRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+      '</Relationships>';
+    var parts = buildZip([
+      {name:'[Content_Types].xml', data: strToBytes(contentTypes)},
+      {name:'_rels/.rels', data: strToBytes(rootRels)},
+      {name:'xl/workbook.xml', data: strToBytes(workbookXml)},
+      {name:'xl/_rels/workbook.xml.rels', data: strToBytes(workbookRels)},
+      {name:'xl/worksheets/sheet1.xml', data: strToBytes(sheetXml)}
+    ]);
+    var blob = new Blob(parts, {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('已匯出（Excel）：'+filename);
+  }
+  function exportPDF(title, headers, rows){
+    var esc2 = function(v){ v=(v===undefined||v===null)?'':String(v); return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    var w = window.open('', '_blank');
+    if(!w){ toast('瀏覽器阻擋了新視窗，請允許彈出視窗以匯出 PDF'); return; }
+    var html = '<html><head><meta charset="utf-8"><title>'+esc2(title)+'</title><style>' +
+      'body{font-family:Arial,"Microsoft JhengHei","Noto Sans TC",sans-serif;padding:24px;color:#142320;}' +
+      'h1{font-size:18px;margin:0 0 4px;} .meta{font-size:12px;color:#666;margin-bottom:16px;}' +
+      'table{border-collapse:collapse;width:100%;font-size:11px;} th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;}' +
+      'th{background:#eee;}' +
+      '</style></head><body>' +
+      '<h1>'+esc2(title)+'</h1><div class="meta">匯出時間：'+todayStr()+' · 共 '+rows.length+' 筆（示範用列印預覽，請用瀏覽器列印功能另存為 PDF）</div>' +
+      '<table><thead><tr>'+headers.map(function(h){ return '<th>'+esc2(h)+'</th>'; }).join('')+'</tr></thead><tbody>' +
+      rows.map(function(r){ return '<tr>'+r.map(function(v){ return '<td>'+esc2(v)+'</td>'; }).join('')+'</tr>'; }).join('') +
+      '</tbody></table></body></html>';
+    w.document.open(); w.document.write(html); w.document.close();
+    w.focus();
+    setTimeout(function(){ w.print(); }, 300);
+  }
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
