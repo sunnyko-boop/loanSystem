@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <meta name="googlebot" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>借款總表（原型）</title>
+<title>物流系統</title>
 <style>
   :root {
     --paper: #f5f7f6;
@@ -141,6 +141,11 @@
   .form-row .k { display: block; font-size: 13.5px; color: var(--muted); font-family: "IBM Plex Mono", monospace; margin-bottom: 6px; }
   .form-row input, .form-row select, .form-row textarea { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 11px 14px; font-size: 15px; }
   .form-row textarea { resize: vertical; min-height: 70px; }
+  .req { color: var(--danger); font-style: normal; font-weight: 700; }
+  .choice-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .form-row .choice { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; font-size: 14px; }
+  .form-row .choice input { width: auto; margin: 0; padding: 0; accent-color: var(--accent); }
+  .form-row .choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 
   .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
   .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; font-size: 12.5px; color: var(--muted); align-items: center; }
@@ -153,7 +158,7 @@
   .modal .btn { font-size: 15px; padding: 10px 20px; }
   .modal .hint { font-size: 13px; }
 
-  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 9px 18px; border-radius: 8px; font-size: 13px; z-index: 60; display: none; }
+  .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 8px 24px rgba(0,0,0,.25); max-width: calc(100vw - 32px); text-align: center; background: var(--ink); color: var(--paper); padding: 9px 18px; border-radius: 8px; font-size: 13px; z-index: 1000; display: none; }
 
   .app.hidden { display: none; }
   .login-screen { position: fixed; inset: 0; background: var(--paper); display: flex; align-items: center; justify-content: center; z-index: 100; }
@@ -198,7 +203,7 @@
 <body>
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
-    <div class="login-brand">LOAN-OPS<b>借款總表</b></div>
+    <div class="login-brand">LOAN-OPS<b>物流系統</b></div>
     <div class="login-sub">測試環境登入</div>
     <label class="lf"><span class="k">登入帳號</span>
       <select id="loginRole"></select>
@@ -210,9 +215,9 @@
 </div>
 <div class="app hidden" id="app">
   <div class="sidebar">
-    <div class="brand">LOAN-OPS<b>借款總表</b></div>
+    <div class="brand">LOAN-OPS<b>物流總表</b></div>
     <nav>
-      <button class="nav-item active" data-view="ledger"><span class="ic">📒</span>借款總表</button>
+      <button class="nav-item active" data-view="ledger"><span class="ic">📒</span>物流總表</button>
       <button class="nav-item" data-view="approvals"><span class="ic">✅</span>審批<span class="badge" id="apprBadge">0</span></button>
       <button class="nav-item" data-view="notes"><span class="ic">📝</span>催收備註</button>
       <button class="nav-item" data-view="blacklist"><span class="ic">🚫</span>黑名單</button>
@@ -223,7 +228,7 @@
   </div>
   <div class="main">
     <div class="topbar">
-      <h1 id="pageTitle">借款總表</h1>
+      <h1 id="pageTitle">物流總表</h1>
       <span class="demo-badge">測試環境</span>
       <div class="identity">
         <span class="chip" id="whoChip"></span>
@@ -253,6 +258,7 @@
   document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target.id==='modalBg') closeModal(); });
 
   var STATUS_LIST = ['還款中','完會','完會已續','完會不續','OCA'];
+  var TYPE_LIST = ['PL','PL, 合作單','PL, 假清','假清','假清, CASH, 合作單'];
   var ROLE_LABEL = {admin:'Admin', operator:'審核人', sales:'Sales'};
   function canViewPhone(){ return state.role==='admin'; }
   function canApprove(){ return state.role==='admin' || state.role==='operator'; }
@@ -376,7 +382,7 @@
   }
 
   // ---------- 頁面 ----------
-  var TITLES = {ledger:'借款總表', approvals:'審批', notes:'催收備註', blacklist:'黑名單', notify:'通知紀錄', accounts:'系統管理'};
+  var TITLES = {ledger:'物流總表', approvals:'審批', notes:'催收備註', blacklist:'黑名單', notify:'通知紀錄', accounts:'系統管理'};
 
   function renderAll(){
     document.getElementById('pageTitle').textContent = TITLES[state.view];
@@ -411,7 +417,7 @@
       '<div class="stat"><div class="n">'+byStatus['OCA']+'</div><div class="l">OCA</div></div>' +
     '</div>';
 
-    html += '<div class="panel"><div class="detail-head"><h2>借款總表</h2><div>'+renderExportGroup('ledger')+' <button class="btn small" id="addLoanBtn">＋ 新增借款</button></div></div>';
+    html += '<div class="panel"><div class="detail-head"><h2>物流總表</h2><div>'+renderExportGroup('ledger')+' <button class="btn small" id="addLoanBtn">＋ 新增借款</button></div></div>';
     html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">一行＝一筆借款，直接包含借款人資料（跟原始 Excel「PL 表」一樣的排法）；新增借款要先經「審批」核准才會出現在這裡，催收備註另一頁記錄。</div>';
     html += renderSearchToolbar('ledger', state.ledgerQuery, {status:true});
     if(hasQueryValue(state.ledgerQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+list.length+' 筆</div>';
@@ -420,7 +426,7 @@
     if(!list.length) html += '<div class="empty-state">'+(state.loans.length?'查無符合的借款紀錄':'尚無借款紀錄')+'</div>';
     else {
       html += '<div class="table-wrap"><table><thead><tr>' +
-        '<th>日期</th><th>編號</th><th>類型</th><th>姓名</th><th>身分證</th><th>電話</th><th>金額</th><th>還款日</th><th>期數</th><th>狀態</th><th>場</th><th>備注</th><th>業務</th><th>TE數</th><th></th>' +
+        '<th>建立日期</th><th>編號</th><th>類型</th><th>姓名</th><th>身分證</th><th>電話</th><th>金額</th><th>還款日</th><th>期數</th><th>狀態</th><th>場</th><th>備注</th><th>業務</th><th>TE數</th><th></th>' +
         '</tr></thead><tbody>';
       list.slice().reverse().forEach(function(l){
         html += '<tr>' +
@@ -443,7 +449,7 @@
   function renderApprovals(){
     var pending = state.pendingLoans;
     var html = '<div class="panel"><h2>待審批借款（'+pending.length+'）</h2>';
-    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">'+(canApprove()?'新增借款要先送到這裡，經核准後才會正式編號並出現在借款總表。':'審核／拒絕僅限 Admin 與審核人操作，此身份只能查看與送件（新增借款）。')+'</div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">'+(canApprove()?'新增借款要先送到這裡，經核准後才會正式編號並出現在物流總表。':'審核／拒絕僅限 Admin 與審核人操作，此身份只能查看與送件（新增借款）。')+'</div>';
     if(!pending.length) html += '<div class="empty-state">目前沒有待審批的借款</div>';
     else {
       html += '<div class="table-wrap"><table><thead><tr><th>日期</th><th>姓名</th><th>身分證</th><th>電話</th><th>金額</th><th>期數</th><th>送出人</th><th></th></tr></thead><tbody>';
@@ -461,7 +467,7 @@
   function renderNotes(){
     var list = filteredNotes();
     var html = '<div class="panel"><div class="detail-head"><h2>催收備註（'+state.notes.length+'）</h2><div>'+renderExportGroup('notes')+' <button class="btn small" id="addNoteBtn">＋ 新增備註</button></div></div>';
-    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">對應原始 Excel 的「Reason」欄位：按日期記錄每次催收/聯絡狀況，跟借款總表用身分證關聯，不綁定單一借款編號。</div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">對應原始 Excel 的「Reason」欄位：按日期記錄每次催收/聯絡狀況，跟物流總表用身分證關聯，不綁定單一借款編號。</div>';
     html += renderSearchToolbar('notes', state.noteQuery, {});
     if(hasQueryValue(state.noteQuery)) html += '<div class="hint" style="margin-top:-8px;">模擬查詢結果：共 '+list.length+' 筆</div>';
     if(!list.length) html += '<div class="empty-state">'+(state.notes.length?'查無符合的備註':'尚無備註')+'</div>';
@@ -482,7 +488,7 @@
   function renderBlacklist(){
     var blEntries = Object.keys(state.blacklist);
     var html = '<div class="panel"><h2>黑名單（'+blEntries.length+'）</h2>';
-    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">在「催收備註」頁按「加入黑名單／解除黑名單」會同步到這裡；借款總表與催收備註的姓名旁也會顯示黑名單標籤。</div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">在「催收備註」頁按「加入黑名單／解除黑名單」會同步到這裡；物流總表與催收備註的姓名旁也會顯示黑名單標籤。</div>';
     if(!blEntries.length) html += '<div class="empty-state">目前沒有黑名單借款人</div>';
     else {
       html += '<div class="table-wrap"><table><thead><tr><th>身分證</th><th>姓名</th><th>原因</th><th>日期</th><th></th></tr></thead><tbody>';
@@ -500,7 +506,7 @@
   function renderNotify(){
     var list = state.notifications;
     var html = '<div class="panel"><h2>通知紀錄（'+list.length+'）</h2>';
-    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">在借款總表按「發通知」模擬發送繳款提醒／逾期通知／入帳通知，紀錄會列在這裡（不會真的寄信/發簡訊）。</div>';
+    html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">在物流總表按「發通知」模擬發送繳款提醒／逾期通知／入帳通知，紀錄會列在這裡（不會真的寄信/發簡訊）。</div>';
     if(!list.length) html += '<div class="empty-state">尚無通知紀錄</div>';
     else {
       html += '<div class="table-wrap"><table><thead><tr><th>時間</th><th>姓名</th><th>身分證</th><th>類型</th><th>管道</th><th>收件</th><th>內容</th><th>發送人</th></tr></thead><tbody>';
@@ -535,8 +541,8 @@
   function openAddAccount(){
     openModal(
       '<div class="detail-head"><h2>新增帳號</h2></div>' +
-      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="acName"></label>' +
-      '<label><span class="k">角色 *</span><select id="acRole"><option value="admin">Admin</option><option value="operator">審核人</option><option value="sales">Sales</option></select></label></div>' +
+      '<div class="form-row"><label><span class="k">姓名 <i class="req">*</i></span><input type="text" id="acName"></label>' +
+      '<label><span class="k">角色 <i class="req">*</i></span><select id="acRole"><option value="admin">Admin</option><option value="operator">審核人</option><option value="sales">Sales</option></select></label></div>' +
       '<div class="hint" style="margin-bottom:12px;">示範環境不設密碼，登入畫面選這個帳號、密碼隨便輸入即可登入。</div>' +
       '<button class="btn" id="acSaveBtn">儲存</button> <button class="btn ghost" id="acCancelBtn">取消</button>'
     );
@@ -553,8 +559,8 @@
     var u = findUser(id);
     openModal(
       '<div class="detail-head"><h2>編輯帳號：'+esc(u.name)+'</h2></div>' +
-      '<div class="form-row"><label><span class="k">姓名 *</span><input type="text" id="acName" value="'+esc(u.name)+'"></label>' +
-      '<label><span class="k">角色 *</span><select id="acRole">' +
+      '<div class="form-row"><label><span class="k">姓名 <i class="req">*</i></span><input type="text" id="acName" value="'+esc(u.name)+'"></label>' +
+      '<label><span class="k">角色 <i class="req">*</i></span><select id="acRole">' +
       '<option value="admin"'+(u.role==='admin'?' selected':'')+'>Admin</option>' +
       '<option value="operator"'+(u.role==='operator'?' selected':'')+'>審核人</option>' +
       '<option value="sales"'+(u.role==='sales'?' selected':'')+'>Sales</option>' +
@@ -577,6 +583,7 @@
   function toggleAccountActive(id){
     var u = findUser(id);
     if(id === state.currentUserId){ toast('不可停用自己目前登入的帳號'); return; }
+    if(!confirm(u.active ? '確定要停用帳號「'+u.name+'」嗎？停用後該帳號將無法登入。' : '確定要重新啟用帳號「'+u.name+'」嗎？')) return;
     u.active = !u.active;
     renderAll(); refreshAccountSelects();
     toast(u.active ? '已啟用帳號：'+u.name : '已停用帳號：'+u.name);
@@ -608,28 +615,55 @@
     var phoneField = phoneLocked
       ? '<input type="text" id="lnPhone" value="****" disabled><div class="hint">只有 Admin 可查看／修改電話</div>'
       : '<input type="text" id="lnPhone" value="'+esc(l.phone)+'">';
-    return '<div class="form-row"><label><span class="k">日期 *</span><input type="date" id="lnDate" value="'+esc(l.date)+'"></label>' +
-      '<label><span class="k">類型</span><input type="text" id="lnType" value="'+esc(l.type)+'"></label></div>' +
-      '<div class="form-row"><label><span class="k">英文姓名 *</span><input type="text" id="lnNameEn" value="'+esc(l.nameEn)+'"></label>' +
-      '<label><span class="k">中文姓名 *</span><input type="text" id="lnNameZh" value="'+esc(l.nameZh)+'"></label></div>' +
-      '<div class="form-row"><label><span class="k">身分證 *</span><input type="text" id="lnHkid" placeholder="例如 A123456(7)" value="'+esc(l.hkid)+'"></label>' +
-      '<label><span class="k">電話 *</span>'+phoneField+'</label></div>' +
-      '<div class="form-row"><label><span class="k">金額 *</span><input type="number" id="lnAmount" value="'+esc(l.amount)+'"></label>' +
-      '<label><span class="k">還款日</span><input type="text" id="lnDueBasis" placeholder="例如 15 或 月" value="'+esc(l.dueBasis)+'"></label></div>' +
-      '<div class="form-row"><label><span class="k">期數 *</span><input type="number" id="lnTerm" value="'+esc(l.term)+'"></label>' +
-      '<label><span class="k">狀態</span><input type="text" id="lnStatus" placeholder="例如 還款中／完會／完會已續／完會不續／OCA" value="'+esc(l.status)+'"></label></div>' +
+    return '<div class="form-row"><label><span class="k">日期 <i class="req">*</i></span><input type="date" id="lnDate" value="'+esc(l.date)+'"></label>' +
+      '<label><span class="k">類型</span>'+typeSelect(l.type)+'</label></div>' +
+      '<div class="form-row"><label><span class="k">英文姓名 <i class="req">*</i></span><input type="text" id="lnNameEn" value="'+esc(l.nameEn)+'"></label>' +
+      '<label><span class="k">中文姓名 <i class="req">*</i></span><input type="text" id="lnNameZh" value="'+esc(l.nameZh)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">身分證 <i class="req">*</i></span><input type="text" id="lnHkid" placeholder="例如 A123456(7)" value="'+esc(l.hkid)+'"></label>' +
+      '<label><span class="k">電話 <i class="req">*</i></span>'+phoneField+'</label></div>' +
+      '<div class="form-row"><label><span class="k">金額 <i class="req">*</i></span><input type="number" id="lnAmount" value="'+esc(l.amount)+'"></label>' +
+      '<label><span class="k">還款日</span><input type="text" id="lnDueBasis" placeholder="例如 15 或 月" value="'+esc(l.dueBasis)+'"></label>' +
+      '<label><span class="k">期數 <i class="req">*</i></span><input type="number" id="lnTerm" value="'+esc(l.term)+'"></label></div>' +
       '<div class="form-row"><label><span class="k">場（分店/地區）</span><input type="text" id="lnBranch" value="'+esc(l.branch)+'"></label>' +
       '<label><span class="k">業務／介紹人</span><input type="text" id="lnAgent" value="'+esc(l.agent)+'"></label></div>' +
+      '<div class="form-row one"><div><span class="k">狀態</span>'+choiceGroup('lnStatus', STATUS_LIST, l.status)+'</div></div>' +
       '<div class="form-row one"><label><span class="k">備注</span><textarea id="lnRemarks">'+esc(l.remarks)+'</textarea></label></div>' +
       '<div class="form-row one"><label><span class="k">TE數</span><input type="number" id="lnTeCount" value="'+esc(l.teCount)+'"></label></div>';
   }
+
+  // 單選的 checkbox 群組；舊資料若有清單外的值，也列為選項以免遺失
+  function choiceGroup(name, list, current){
+    var opts = list.slice();
+    if(current && opts.indexOf(current)<0) opts.push(current);
+    return '<div class="choice-group">' + opts.map(function(o){
+      return '<label class="choice"><input type="checkbox" name="'+name+'" value="'+esc(o)+'"'+(o===current?' checked':'')+'><span>'+esc(o)+'</span></label>';
+    }).join('') + '</div>';
+  }
+  // 類型下拉：空白選項對應 Excel 的（空格）；舊資料若有清單外的值也列出
+  function typeSelect(current){
+    var opts = [''].concat(TYPE_LIST);
+    if(current && opts.indexOf(current)<0) opts.push(current);
+    return '<select id="lnType">' + opts.map(function(o){
+      return '<option value="'+esc(o)+'"'+(o===(current||'')?' selected':'')+'>'+(o ? esc(o) : '（空白）')+'</option>';
+    }).join('') + '</select>';
+  }
+  function choiceVal(name){
+    var c = document.querySelector('input[name="'+name+'"]:checked');
+    return c ? c.value : '';
+  }
+  document.addEventListener('change', function(e){
+    var t = e.target;
+    if(t.type!=='checkbox' || !t.closest('.choice-group')) return;
+    if(!t.checked){ t.checked = true; return; }
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="'+t.name+'"]'), function(x){ if(x!==t) x.checked = false; });
+  });
 
   function readLoanForm(originalPhone){
     var phoneLocked = originalPhone!==undefined && !canViewPhone();
     return {
       date: val('lnDate'), type: val('lnType'), nameEn: val('lnNameEn').trim().toUpperCase(), nameZh: val('lnNameZh').trim(),
       hkid: val('lnHkid').trim().toUpperCase(), phone: phoneLocked ? originalPhone : val('lnPhone').trim(), amount: Number(val('lnAmount')),
-      dueBasis: val('lnDueBasis'), term: Number(val('lnTerm')), status: val('lnStatus'),
+      dueBasis: val('lnDueBasis'), term: Number(val('lnTerm')), status: choiceVal('lnStatus'),
       branch: val('lnBranch').trim(), agent: val('lnAgent').trim(), teCount: Number(val('lnTeCount'))||0, remarks: val('lnRemarks').trim()
     };
   }
@@ -710,6 +744,7 @@
       closeModal(); renderAll(); toast('已更新借款：'+f.no);
     });
     document.getElementById('lnDeleteBtn').addEventListener('click', function(){
+      if(!confirm('確定要刪除借款 '+l.no+' 嗎？此動作無法復原。')) return;
       state.loans = state.loans.filter(function(x){ return x.no!==l.no; });
       closeModal(); renderAll(); toast('已刪除借款：'+l.no);
     });
@@ -722,11 +757,11 @@
     var phoneField = phoneLocked
       ? '<input type="text" id="ntPhone" value="****" disabled><div class="hint">只有 Admin 可查看／修改電話</div>'
       : '<input type="text" id="ntPhone" value="'+esc(n.phone)+'">';
-    return '<div class="form-row"><label><span class="k">日期 *</span><input type="date" id="ntDate" value="'+esc(n.date)+'"></label>' +
-      '<label><span class="k">姓名 *</span><input type="text" id="ntName" value="'+esc(n.name)+'"></label></div>' +
-      '<div class="form-row"><label><span class="k">身分證 *</span><input type="text" id="ntHkid" placeholder="例如 A123456(7)" value="'+esc(n.hkid)+'"></label>' +
+    return '<div class="form-row"><label><span class="k">日期 <i class="req">*</i></span><input type="date" id="ntDate" value="'+esc(n.date)+'"></label>' +
+      '<label><span class="k">姓名 <i class="req">*</i></span><input type="text" id="ntName" value="'+esc(n.name)+'"></label></div>' +
+      '<div class="form-row"><label><span class="k">身分證 <i class="req">*</i></span><input type="text" id="ntHkid" placeholder="例如 A123456(7)" value="'+esc(n.hkid)+'"></label>' +
       '<label><span class="k">電話</span>'+phoneField+'</label></div>' +
-      '<div class="form-row one"><label><span class="k">內容 *</span><textarea id="ntReason" placeholder="例如：客人表示呢期較忙，已改約下週三上門收數">'+esc(n.reason)+'</textarea></label></div>';
+      '<div class="form-row one"><label><span class="k">內容 <i class="req">*</i></span><textarea id="ntReason" placeholder="例如：客人表示呢期較忙，已改約下週三上門收數">'+esc(n.reason)+'</textarea></label></div>';
   }
   function readNoteForm(originalPhone){
     var phoneLocked = originalPhone!==undefined && !canViewPhone();
@@ -769,6 +804,7 @@
       closeModal(); renderAll(); toast('已更新備註');
     });
     document.getElementById('ntDeleteBtn').addEventListener('click', function(){
+      if(!confirm('確定要刪除這筆備註嗎？此動作無法復原。')) return;
       state.notes = state.notes.filter(function(x){ return x.id!==n.id; });
       closeModal(); renderAll(); toast('已刪除備註');
     });
@@ -776,13 +812,14 @@
 
   function toggleBlacklist(hkid, name){
     if(isBlacklisted(hkid)){
+      if(!confirm('確定要將「'+(name||hkid)+'」解除黑名單嗎？')) return;
       delete state.blacklist[hkid.toUpperCase()];
       renderAll(); toast('已解除黑名單：'+(name||hkid));
       return;
     }
     openModal(
       '<div class="detail-head"><h2>加入黑名單：'+esc(name||hkid)+'</h2></div>' +
-      '<div class="form-row one"><label><span class="k">原因 *</span><textarea id="blReason" placeholder="例如：拖數失聯、多次逾期不還"></textarea></label></div>' +
+      '<div class="form-row one"><label><span class="k">原因 <i class="req">*</i></span><textarea id="blReason" placeholder="例如：拖數失聯、多次逾期不還"></textarea></label></div>' +
       '<button class="btn danger" id="blSaveBtn">確定加入黑名單</button> <button class="btn ghost" id="blCancelBtn">取消</button>'
     );
     document.getElementById('blCancelBtn').addEventListener('click', closeModal);
@@ -822,7 +859,7 @@
     if(kind==='ledger'){
       var list = filteredLoans();
       return {
-        title: '借款總表',
+        title: '物流總表',
         headers: ['日期','編號','類型','英文姓名','中文姓名','身分證','電話','金額','還款日','期數','狀態','場','備注','業務','TE數'],
         rows: list.map(function(l){ return [l.date,l.no,l.type,l.nameEn,l.nameZh,l.hkid,canViewPhone()?l.phone:maskPhone(),l.amount,l.dueBasis,l.term,l.status,l.branch,l.remarks,l.agent,l.teCount]; })
       };
