@@ -562,7 +562,7 @@
 
   function renderApprovals(){
     var pending = state.pendingLoans;
-    var html = '<div class="panel"><h2>待審批借款（'+pending.length+'）</h2>';
+    var html = '<div class="panel"><h2>待審批借款</h2>';
     html += '<div class="hint" style="margin-top:-6px;margin-bottom:14px;">'+(canApprove()?'新增借款要先送到這裡，經核准後才會正式編號並出現在物流總表。':'審核／拒絕僅限 Admin 與審核人操作，此身份只能查看與送件（新增借款）。')+'</div>';
     if(!pending.length) html += '<div class="empty-state">目前沒有待審批的借款</div>';
     else {
